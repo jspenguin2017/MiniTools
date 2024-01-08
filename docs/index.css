@@ -68,12 +68,12 @@ pre {
 
 /* ----- Basic -------------------------------------------------------------- */
 
-.hidden {
-  display: none;
+.code {
+  font-family: monospace;
 }
 
-.bold {
-  font-weight: bold;
+.hidden {
+  display: none;
 }
 
 /* ----- Colors ------------------------------------------------------------- */
@@ -86,54 +86,6 @@ pre {
 .blue {
   background-color: #2463c9;
   color: #ffffff;
-}
-
-.red {
-  background-color: #ff5555;
-  color: #ffffff;
-}
-
-/* ----- Navigation Bar ----------------------------------------------------- */
-
-.navbar {
-  background-color: #f8f8f8;
-  height: 60px;
-}
-
-.navbar .title {
-  color: #5e5e5e;
-  font-size: 1.2em;
-  font-weight: bold;
-  margin: 0px;
-  padding: 19px 2px;
-}
-
-.navbar > .left {
-  float: left;
-  margin-left: 10px;
-}
-
-.navbar > .right {
-  float: right;
-  margin-right: 10px;
-}
-
-.navbar > .clear {
-  clear: both;
-}
-
-.navbar button {
-  height: 60px;
-}
-
-@media (min-width: 600px) {
-  .navbar > .left {
-    margin-left: 10%;
-  }
-
-  .navbar > .right {
-    margin-right: 10%;
-  }
 }
 
 /* ----- Buttons ------------------------------------------------------------ */
@@ -187,88 +139,9 @@ button.large {
   padding: 10px;
 }
 
-.container.footer {
-  background-color: #ffffff;
-  margin: 0px;
-  padding-bottom: 0px;
-  padding-top: 0px;
-}
-
-.container.footer p {
-  color: #808080;
-  font-size: 0.7em;
-}
-
 @media (min-width: 600px) {
   .container {
     padding-left: 10%;
     padding-right: 10%;
-  }
-
-  .container.footer p {
-    color: #808080;
-    font-size: 0.8em;
-  }
-}
-
-/* ----- Pagination --------------------------------------------------------- */
-
-.pagination {
-  text-align: center;
-}
-
-.pagination button {
-  background-color: #ffffff;
-}
-
-.pagination button.active {
-  background-color: #2463c9;
-  color: #ffffff;
-  opacity: 1;
-}
-
-/* ----- Table -------------------------------------------------------------- */
-
-table {
-  width: 100%;
-}
-
-/* ----- Popups ------------------------------------------------------------- */
-
-.popup-container {
-  background-color: #00000055;
-  display: none;
-  height: 100%;
-  left: 0px;
-  position: fixed;
-  top: 0px;
-  width: 100%;
-}
-
-.popup-container.open {
-  display: block;
-}
-
-.popup {
-  background-color: #ffffff;
-  margin: 40px auto;
-  opacity: 1;
-  padding: 25px;
-  width: 80%;
-}
-
-.popup h1,
-.popup h2,
-.popup h3,
-.popup h4,
-.popup h5,
-.popup h6 {
-  border-bottom: 1px solid #808080;
-  margin: 0px;
-}
-
-@media (min-width: 600px) {
-  .popup {
-    width: 60%;
   }
 }

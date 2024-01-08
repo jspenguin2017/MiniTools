@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';" />
+    <meta name="author" content="jspenguin2017" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Filters Toolkit</title>
+    <link rel="stylesheet" href="../index.css" />
+    <script src="index.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Filters Toolkit</h1>
+      <p>A collection of tools to help you write filters.</p>
+    </div>
+
+    <div class="container" id="links-to-domains">
+      <h2>Text Transform: Links to Comma-Separated Domain Array</h2>
+      <p>Output array is sorted but duplicates are not removed.</p>
+      <p>First link of each line will be extracted, extra text in front of links are ignored.</p>
+      <p>Warnings will be generated for lines that contain more than one links or do not contain any valid links.</p>
+      <textarea placeholder="Paste here, one link per line..." spellcheck="false"></textarea>
+      <br /><br />
+      <button class="blue large">Transform</button>
+      <button class="green large hidden">Copy Output</button>
+      <br /><br />
+      <pre></pre>
+    </div>
+
+    <div class="container" id="merge-domains">
+      <h2>Text Transform: Merge Comma Separated Domain Array</h2>
+      <p>Output array is sorted. Duplicate and invalid entries are removed.</p>
+      <p>Warnings will be generated for entries that are removed.</p>
+      <textarea placeholder="Paste here, one array per line..." spellcheck="false"></textarea>
+      <br /><br />
+      <button class="blue large">Transform</button>
+      <button class="green large hidden">Copy Output</button>
+      <br /><br />
+      <pre></pre>
+    </div>
+
+    <div class="container" id="unmerge-domains">
+      <h2>Text Transform: Unmerge Comma Separated Domain Array</h2>
+      <p>From first line, remove domains that are contained in other lines.</p>
+      <p>If first line contains duplicate entries, the first duplicate entry will be removed on each match.</p>
+      <p>Output array is not sorted.</p>
+      <p>Warnings will be generated for entries that are not matched.</p>
+      <textarea placeholder="Paste here, one array per line..." spellcheck="false"></textarea>
+      <br /><br />
+      <button class="blue large">Transform</button>
+      <button class="green large hidden">Copy Output</button>
+      <br /><br />
+      <pre></pre>
+    </div>
+
+    <div class="container" id="unicode-escape">
+      <h2>Text Transform: Unicode Escape</h2>
+      <p>Convert non-ASCII characters to their Unicode escape sequence.</p>
+      <textarea placeholder="Paste here..." spellcheck="false"></textarea>
+      <br /><br />
+      <button class="blue large">Transform</button>
+      <button class="green large hidden">Copy Output</button>
+      <br /><br />
+      <pre></pre>
+    </div>
+
+    <div class="container">
+      <h2>Links</h2>
+      <p>
+        <a href="https://github.com/jspenguin2017/MiniTools" target="_blank" rel="noopener">Source Code</a>
+      </p>
+      <p>
+        <a href="https://github.com/jspenguin2017/MiniTools/blob/main/LICENSE" target="_blank" rel="noopener"
+          >License</a
+        >
+      </p>
+    </div>
+  </body>
+</html>
