@@ -7,69 +7,64 @@ const onLoadTasks = [];
 // ----------------------------------------------------------------------------------------------------------------- //
 
 const defaultTextTransformOptions = {
-    join: ",",
+  join: ",",
 };
 
 const createTextTransform = (id, implementation) => {
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  const $container = document.getElementById(id);
 
-    const $container = document.getElementById(id);
+  const $input = $container.querySelector(":scope > textarea");
+  const $output = $container.querySelector(":scope > pre");
+  const [$transform, $copy] = $container.querySelectorAll(":scope > button");
 
-    const $input = $container.querySelector(":scope > textarea");
-    const $output = $container.querySelector(":scope > pre");
-    const [$transform, $copy] = $container.querySelectorAll(":scope > button");
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  let output = "";
 
-    let output = "";
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  $transform.onclick = () => {
+    // --------------------------------------------------------------------------------------------------------- //
 
-    $transform.onclick = () => {
+    const lines = $input.value.split("\n");
 
-        // --------------------------------------------------------------------------------------------------------- //
+    const [out, warn, opt] = implementation(lines);
 
-        const lines = $input.value.split("\n");
+    // --------------------------------------------------------------------------------------------------------- //
 
-        const [out, warn, opt] = implementation(lines);
+    const result = [];
 
-        // --------------------------------------------------------------------------------------------------------- //
+    if (warn.length > 0) {
+      result.push("Warnings:");
+      for (const w of warn) result.push(w);
+      result.push("");
+    }
 
-        const result = [];
+    output = out.join(opt.join);
+    result.push("Output:");
+    result.push(output);
 
-        if (warn.length > 0) {
-            result.push("Warnings:");
-            for (const w of warn)
-                result.push(w);
-            result.push("");
-        }
+    $output.textContent = result.join("\n");
+    $copy.classList.remove("hidden");
 
-        output = out.join(opt.join);
-        result.push("Output:");
-        result.push(output);
+    // --------------------------------------------------------------------------------------------------------- //
+  };
 
-        $output.textContent = result.join("\n");
-        $copy.classList.remove("hidden");
+  // ------------------------------------------------------------------------------------------------------------- //
 
-        // --------------------------------------------------------------------------------------------------------- //
+  $copy.onclick = () => {
+    const old = $input.value;
+    $input.value = output;
 
-    };
+    $input.select();
+    document.execCommand("copy");
 
-    // ------------------------------------------------------------------------------------------------------------- //
+    $input.value = old;
+  };
 
-    $copy.onclick = () => {
-        const old = $input.value;
-        $input.value = output;
-
-        $input.select();
-        document.execCommand("copy");
-
-        $input.value = old;
-    };
-
-    // ------------------------------------------------------------------------------------------------------------- //
-
+  // ------------------------------------------------------------------------------------------------------------- //
 };
 
 // ----------------------------------------------------------------------------------------------------------------- //
@@ -77,52 +72,46 @@ const createTextTransform = (id, implementation) => {
 // Text Transform: Links to Comma Separated Domain Array
 
 onLoadTasks.push(() => {
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  // There can be extra text before the link, so no start anchor
+  const reDomainExtract = /https?:\/\/([^:/?#]+)/;
 
-    // There can be extra text before the link, so no start anchor
-    const reDomainExtract = /https?:\/\/([^:/?#]+)/;
+  const reDomainDuplicate = /https?:.*?https?:/;
 
-    const reDomainDuplicate = /https?:.*?https?:/;
+  // TODO: What about "www.com" or similar domains?
+  const reDomainCleanup = /^www?\d*?\./;
 
-    // TODO: What about "www.com" or similar domains?
-    const reDomainCleanup = /^www?\d*?\./;
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  const handler = (lines) => {
+    const out = [];
+    const warn = [];
 
-    const handler = (lines) => {
+    for (let line of lines) {
+      line = line.trim();
+      if (line.length === 0) continue;
 
-        const out = [];
-        const warn = [];
+      if (reDomainDuplicate.test(line)) warn.push('Two links (second one ignored) "' + line + '"');
 
-        for (let line of lines) {
-            line = line.trim();
-            if (line.length === 0)
-                continue;
+      const dom = reDomainExtract.exec(line);
 
-            if (reDomainDuplicate.test(line))
-                warn.push('Two links (second one ignored) "' + line + '"');
+      if (dom === null) {
+        warn.push('No link "' + line + '"');
+        continue;
+      }
 
-            const dom = reDomainExtract.exec(line);
+      out.push(dom[1].replace(reDomainCleanup, ""));
+    }
 
-            if (dom === null) {
-                warn.push('No link "' + line + '"');
-                continue;
-            }
+    return [out.sort(), warn, defaultTextTransformOptions];
+  };
 
-            out.push(dom[1].replace(reDomainCleanup, ""));
-        }
+  // ------------------------------------------------------------------------------------------------------------- //
 
-        return [out.sort(), warn, defaultTextTransformOptions];
+  createTextTransform("links-to-domains", handler);
 
-    };
-
-    // ------------------------------------------------------------------------------------------------------------- //
-
-    createTextTransform("links-to-domains", handler);
-
-    // ------------------------------------------------------------------------------------------------------------- //
-
+  // ------------------------------------------------------------------------------------------------------------- //
 });
 
 // ----------------------------------------------------------------------------------------------------------------- //
@@ -130,56 +119,50 @@ onLoadTasks.push(() => {
 // Text Transform:  Merge Comma Separated Domain Array
 
 onLoadTasks.push(() => {
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  const handler = (lines) => {
+    const out = [];
+    const warn = [];
 
-    const handler = (lines) => {
+    const set = new Set();
 
-        const out = [];
-        const warn = [];
+    let count = 0;
 
-        const set = new Set();
+    for (let line of lines) {
+      line = line.trim();
+      if (line.length === 0) continue;
 
-        let count = 0;
+      count++;
 
-        for (let line of lines) {
-            line = line.trim();
-            if (line.length === 0)
-                continue;
+      for (let d of line.split(",")) {
+        d = d.trim();
 
-            count++;
-
-            for (let d of line.split(",")) {
-                d = d.trim();
-
-                if (d.length === 0 || !d.includes(".")) {
-                    warn.push('Invalid entry "' + d + '"');
-                    continue;
-                }
-
-                if (set.has(d)) {
-                    warn.push('Duplicate entry "' + d + '"');
-                    continue;
-                }
-
-                set.add(d);
-                out.push(d);
-            }
+        if (d.length === 0 || !d.includes(".")) {
+          warn.push('Invalid entry "' + d + '"');
+          continue;
         }
 
-        if (count === 1)
-            warn.push("Only one array found!");
+        if (set.has(d)) {
+          warn.push('Duplicate entry "' + d + '"');
+          continue;
+        }
 
-        return [out.sort(), warn, defaultTextTransformOptions];
+        set.add(d);
+        out.push(d);
+      }
+    }
 
-    };
+    if (count === 1) warn.push("Only one array found!");
 
-    // ------------------------------------------------------------------------------------------------------------- //
+    return [out.sort(), warn, defaultTextTransformOptions];
+  };
 
-    createTextTransform("merge-domains", handler);
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  createTextTransform("merge-domains", handler);
 
+  // ------------------------------------------------------------------------------------------------------------- //
 });
 
 // ----------------------------------------------------------------------------------------------------------------- //
@@ -189,61 +172,54 @@ onLoadTasks.push(() => {
 // TODO: Quadratic running time, can this be optimized?
 
 onLoadTasks.push(() => {
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  const handler = (lines) => {
+    const out = [];
+    const warn = [];
 
-    const handler = (lines) => {
+    let count = 0;
+    let arr = null;
 
-        const out = [];
-        const warn = [];
+    for (let line of lines) {
+      line = line.trim();
+      if (line.length === 0) continue;
 
-        let count = 0;
-        let arr = null;
+      count++;
 
-        for (let line of lines) {
-            line = line.trim();
-            if (line.length === 0)
-                continue;
+      if (arr === null) {
+        arr = line.split(",");
+        arr = arr.map((x) => x.trim());
+        continue;
+      }
 
-            count++;
+      for (let d of line.split(",")) {
+        d = d.trim();
 
-            if (arr === null) {
-                arr = line.split(",");
-                arr = arr.map(x => x.trim());
-                continue;
-            }
-
-            for (let d of line.split(",")) {
-                d = d.trim();
-
-                const index = arr.indexOf(d);
-                if (index === -1) {
-                    warn.push('No entry "' + d + '"');
-                    continue;
-                }
-
-                arr.splice(index, 1);
-            }
+        const index = arr.indexOf(d);
+        if (index === -1) {
+          warn.push('No entry "' + d + '"');
+          continue;
         }
 
-        if (count === 1)
-            warn.push("Only one array found!");
+        arr.splice(index, 1);
+      }
+    }
 
-        if (count > 0) {
-            for (const d of arr)
-                out.push(d);
-        }
+    if (count === 1) warn.push("Only one array found!");
 
-        return [out.sort(), warn, defaultTextTransformOptions];
+    if (count > 0) {
+      for (const d of arr) out.push(d);
+    }
 
-    };
+    return [out.sort(), warn, defaultTextTransformOptions];
+  };
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    createTextTransform("unmerge-domains", handler);
+  createTextTransform("unmerge-domains", handler);
 
-    // ------------------------------------------------------------------------------------------------------------- //
-
+  // ------------------------------------------------------------------------------------------------------------- //
 });
 
 // ----------------------------------------------------------------------------------------------------------------- //
@@ -251,42 +227,36 @@ onLoadTasks.push(() => {
 // Text Transform:  Unicode Escape
 
 onLoadTasks.push(() => {
+  // ------------------------------------------------------------------------------------------------------------- //
 
-    // ------------------------------------------------------------------------------------------------------------- //
+  const handler = (lines) => {
+    const out = [];
+    const warn = [];
 
-    const handler = (lines) => {
+    for (let line of lines) {
+      const chars = line.split("");
 
-        const out = [];
-        const warn = [];
+      for (let i = 0; i < chars.length; i++) {
+        const code = chars[i].charCodeAt(0);
 
-        for (let line of lines) {
-            const chars = line.split("");
+        if (code > 0x7f) chars[i] = "\\u" + code.toString(16).padStart(4, "0").toUpperCase();
+      }
 
-            for (let i = 0; i < chars.length; i++) {
-                const code = chars[i].charCodeAt(0);
+      out.push(chars.join(""));
+    }
 
-                if (code > 0x7F)
-                    chars[i] = "\\u" + code.toString(16).padStart(4, "0").toUpperCase();
-            }
+    return [out, warn, Object.assign({}, defaultTextTransformOptions, { join: "\n" })];
+  };
 
-            out.push(chars.join(""));
-        }
+  // ------------------------------------------------------------------------------------------------------------- //
 
-        return [out, warn, Object.assign({}, defaultTextTransformOptions, { join: "\n" })];
+  createTextTransform("unicode-escape", handler);
 
-    };
-
-    // ------------------------------------------------------------------------------------------------------------- //
-
-    createTextTransform("unicode-escape", handler);
-
-    // ------------------------------------------------------------------------------------------------------------- //
-
+  // ------------------------------------------------------------------------------------------------------------- //
 });
 
 // ----------------------------------------------------------------------------------------------------------------- //
 
 window.onload = () => {
-    for (const f of onLoadTasks)
-        f();
+  for (const f of onLoadTasks) f();
 };
