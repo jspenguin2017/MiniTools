@@ -72,36 +72,36 @@ onLoadTasks.push(() => {
   $findValueButton.onclick = handleFindValue;
 });
 
-// JS UnFuck
-const space = /\s/g;
+// JS Unfuck
+onLoadTasks.push(() => {
+  const $container = document.getElementById("unfuck");
+  const $input = $container.querySelector(":scope > textarea");
+  const $output = $container.querySelector(":scope > pre");
+  const [$method1Button, $method2Button] = $container.querySelectorAll("button");
 
-const reUnFuck1 = /\n(.+)/;
-
-const reUnFuck2 = /.+(?=\n})/;
-
-var unFuck1 = function () {
-  const input = $("#unFuckInput").val().trim().replace(space, "");
-  try {
-    if (input.endsWith("()")) {
-      // Remove outmost eval() wrapper
-      $("#unFuckOutput").val(reUnFuck1.exec(eval(input.slice(0, -2)))[1].toString());
-    } else {
-      $("#unFuckOutput").val(eval(input).toString());
+  const reSpace = /\s/g;
+  const reMethod1 = /\n(.+)/;
+  const reMethod2 = /.+(?=\n})/;
+  const handle = (re) => {
+    const input = $input.value.trim().replace(reSpace, "");
+    try {
+      if (input.endsWith("()")) {
+        // Remove outmost eval() wrapper
+        const result = eval(input.slice(0, -2));
+        $output.value = re.exec(result)[1].toString();
+      } else {
+        $output.value = eval(input).toString();
+      }
+    } catch (err) {
+      $output.value = "Failed, maybe the other method will work?\n";
+      $output.value += "Error message:\n";
+      $output.value += err;
     }
-  } catch (err) {
-    $("#unFuckOutput").val("Failed, please try the other method. Error message:\n" + err);
-  }
-};
-
-var unFuck2 = function () {
-  const input = $("#unFuckInput").val().trim().replace(space, "");
-  try {
-    if (input.endsWith("()")) {
-      $("#unFuckOutput").val(reUnFuck2.exec(eval(input.slice(0, -2))).toString());
-    } else {
-      $("#unFuckOutput").val(eval(input).toString());
-    }
-  } catch (err) {
-    $("#unFuckOutput").val("Failed, please try the other method. Error message:\n" + err);
-  }
-};
+  };
+  $method1Button.onclick = () => {
+    handle(reMethod1);
+  };
+  $method2Button.onclick = () => {
+    handle(reMethod2);
+  };
+});
