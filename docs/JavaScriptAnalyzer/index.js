@@ -77,31 +77,24 @@ onLoadTasks.push(() => {
   const $container = document.getElementById("unfuck");
   const $input = $container.querySelector(":scope > textarea");
   const $output = $container.querySelector(":scope > pre");
-  const [$method1Button, $method2Button] = $container.querySelectorAll("button");
+  const $button = $container.querySelector(":scope > button");
 
   const reSpace = /\s/g;
-  const reMethod1 = /\n(.+)/;
-  const reMethod2 = /.+(?=\n})/;
-  const handle = (re) => {
+  const handleUnfuck = () => {
     const input = $input.value.trim().replace(reSpace, "");
     try {
       if (input.endsWith("()")) {
-        // Remove outmost eval() wrapper
+        // Remove eval() wrapper
         const result = eval(input.slice(0, -2));
-        $output.value = re.exec(result)[1].toString();
+        $output.textContent = `(${result})()`;
       } else {
-        $output.value = eval(input).toString();
+        $output.textContent = eval(input);
       }
     } catch (err) {
-      $output.value = "Failed, maybe the other method will work?\n";
-      $output.value += "Error message:\n";
-      $output.value += err;
+      $output.textContent = "Failed, maybe the other method will work?\n";
+      $output.textContent += "Error message:\n";
+      $output.textContent += err;
     }
   };
-  $method1Button.onclick = () => {
-    handle(reMethod1);
-  };
-  $method2Button.onclick = () => {
-    handle(reMethod2);
-  };
+  $button.onclick = handleUnfuck;
 });
