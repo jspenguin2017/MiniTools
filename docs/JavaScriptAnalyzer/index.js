@@ -1,81 +1,84 @@
 "use strict";
 
-const keyCheck = (e) => {
-  return e.keyCode === 13;
+const onLoadTasks = [];
+
+window.onload = () => {
+  for (const f of onLoadTasks) {
+    f();
+  }
 };
 
+// UnHex
+// Test data: ['\x6c\x6f\x67', '\x74\x65\x73\x74\x31\x32\x33', '\x74\x65\x73\x74\x33\x32\x31']
+onLoadTasks.push(() => {
+  const $container = document.getElementById("unhex");
+  const $input = $container.querySelector(":scope > textarea");
+  const [$findIndexInput, $findValueInput] = $container.querySelectorAll("input");
+  const $output = $container.querySelector(":scope > pre");
+  const [$parseButton, $findIndexButton, $findValueButton] = $container.querySelectorAll("button");
+
+  let unHexData = [];
+  const handleParse = () => {
+    unHexData = [];
+    try {
+      eval(`unHexData = ${$input.value};`);
+      $input.value = JSON.stringify(unHexData);
+      $output.textContent = "Input successfully parsed.";
+    } catch (err) {
+      console.log(err);
+      $output.textContent = "Could not parse input.";
+    }
+  };
+  $parseButton.onclick = handleParse;
+
+  const handleFindIndex = () => {
+    if (unHexData.length === 0) {
+      $output.textContent = "Nothing parsed.";
+      return;
+    }
+    let output = "";
+    for (let i = 0; i < unHexData.length; i++) {
+      const entry = unHexData[i];
+      if (typeof entry === "string" && entry.includes($findIndexInput.value)) {
+        if (output) {
+          output += "\n";
+        }
+        output += `${i}:${entry}`;
+      }
+    }
+    $output.textContent = output;
+  };
+  $findIndexButton.onclick = handleFindIndex;
+
+  const handleFindValue = () => {
+    if (unHexData.length === 0) {
+      $output.textContent = "Nothing parsed.";
+      return;
+    }
+    let i = parseInt($findValueInput.value);
+    if (isNaN(i) || !isFinite(i)) {
+      $output.textContent = "Index not valid integer.";
+      return;
+    }
+    if (i < 0) {
+      i = unHexData.length + i;
+    }
+    if (i < 0 || i >= unHexData.length) {
+      $output.textContent = "Index out of range.";
+      return;
+    }
+    $output.textContent = unHexData[i];
+  };
+  $findValueButton.onclick = handleFindValue;
+});
+
+// JS UnFuck
 const space = /\s/g;
 
 const reUnFuck1 = /\n(.+)/;
 
 const reUnFuck2 = /.+(?=\n})/;
 
-const unHexData = [];
-
-const unHexParse = () => {
-  unHexData = [];
-  try {
-    eval("unHexData = " + $("#unHexTextarea").val());
-    $("#unHexTextarea").val(JSON.stringify(unHexData));
-
-    $("#unHexOutput").html("<p>Input successfully parsed.</p>");
-  } catch (err) {
-    $("#unHexOutput").html("<p>Could not parse input.</p>");
-  }
-};
-
-/**
- * Find the index of the element that contains entered text.
- * @function
- * @listens button.onclick
- */
-var unHexFind = function () {
-  if (unHexData.length === 0) {
-    $("#unHexOutput").html("<p>You must click Parse button first.</p>");
-  } else {
-    const str = $("#unHexValToIndex").val();
-    $("#unHexOutput").html("");
-
-    for (let i = 0; i < unHexData.length; i++) {
-      try {
-        if (unHexData[i].includes(str)) {
-          $("#unHexOutput").append($("<p>").text(i.toString() + ": " + unHexData[i]));
-        }
-      } catch (err) {} // Ignore items that are not string
-    }
-  }
-};
-
-/**
- * Get value of the element at the entered index.
- * @function
- * @listens button.onclick
- */
-var unHexGet = function () {
-  if (unHexData.length === 0) {
-    $("#unHexOutput").html("<p>You must click Parse button first.</p>");
-    return;
-  }
-
-  let i = parseInt($("#unHexIndexToVal").val());
-  if (isNaN(i) || !isFinite(i) || i < 0) {
-    $("#unHexOutput").html("<p>That is not a valid index, please enter an integer.</p>");
-    return;
-  }
-  if (i >= unHexData.length) {
-    $("#unHexOutput").html("<p>Index out of range.</p>");
-    return;
-  }
-
-  $("#unHexOutput").html($("<p>").text(unHexData[i]));
-};
-
-/**
- * Decompile JSFuck code, method 1.
- * The main logic is from nderscore of Code Golf.
- * @function
- * @listens button.onclick
- */
 var unFuck1 = function () {
   const input = $("#unFuckInput").val().trim().replace(space, "");
   try {
@@ -90,12 +93,6 @@ var unFuck1 = function () {
   }
 };
 
-/**
- * Decompile JSFuck code, method 2.
- * The main logic is from nderscore of Code Golf.
- * @function
- * @listens button.onclick
- */
 var unFuck2 = function () {
   const input = $("#unFuckInput").val().trim().replace(space, "");
   try {
