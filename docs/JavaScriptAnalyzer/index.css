@@ -8,8 +8,3 @@
   display: grid;
   grid-template-columns: auto max-content;
 }
-
-#unfuck > .controls {
-  display: grid;
-  grid-template-columns: 50% 50%;
-}
