@@ -1,46 +1,18 @@
 "use strict";
 
-/**
- * Check if the key that is pressed is the Enter key.
- * @function
- * @param {Object} e - The event object.
- * @returns {bool} True if the key that is pressed is Enter key, false otherwise.
- * @listens input.onkeypress
- */
-var keyCheck = function (e) {
+const keyCheck = (e) => {
   return e.keyCode === 13;
 };
 
-/**
- * Precompiled RegExp for matching space.
- * @const {RegExp}
- */
-var space = /\s/g;
+const space = /\s/g;
 
-/**
- * Precompiled RegExp for unFuck1().
- * @const {RegExp}
- */
-var reUnFuck1 = /\n(.+)/;
+const reUnFuck1 = /\n(.+)/;
 
-/**
- * Precompiled RegExp for unFuck2().
- * @const {RegExp}
- */
-var reUnFuck2 = /.+(?=\n})/;
+const reUnFuck2 = /.+(?=\n})/;
 
-/**
- * Data storage for UnHex.
- * @var {Array.<string>}
- */
-var unHexData = [];
+const unHexData = [];
 
-/**
- * Parse data in unHex textarea and put it into unHexData.
- * @function
- * @listens button.onclick
- */
-var unHexParse = function () {
+const unHexParse = () => {
   unHexData = [];
   try {
     eval("unHexData = " + $("#unHexTextarea").val());

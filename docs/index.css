@@ -11,15 +11,15 @@ body {
   margin: 0px;
 }
 
-input[type="text"],
+input,
 textarea {
   border: none;
+  font-family: monospace;
   margin: 0px;
   width: 100%;
 }
 
 textarea {
-  font-family: monospace;
   min-height: 150px;
   resize: vertical;
   white-space: pre;
@@ -31,7 +31,7 @@ pre {
 }
 
 @media (min-width: 600px) {
-  input[type="text"],
+  input,
   textarea {
     font-size: 1.5em;
   }
@@ -78,13 +78,13 @@ pre {
 
 /* ----- Colors ------------------------------------------------------------- */
 
-.green {
-  background-color: #009323;
+.blue {
+  background-color: #2463c9;
   color: #ffffff;
 }
 
-.blue {
-  background-color: #2463c9;
+.green {
+  background-color: #009323;
   color: #ffffff;
 }
 
@@ -103,12 +103,13 @@ button:hover {
   opacity: 0.85;
 }
 
-button:active {
-  opacity: 1;
+button:focus {
+  opacity: 0.85;
+  outline: none;
 }
 
-button:focus {
-  outline: none;
+button:active {
+  opacity: 1;
 }
 
 button.large {
