@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>JavaScript Analyzer</title>
     <link rel="stylesheet" href="../index.css" />
+    <link rel="stylesheet" href="index.css" />
     <script src="index.js"></script>
   </head>
   <body>
@@ -21,14 +22,16 @@
       <p>This can also be a handy tool to search through any array.</p>
       <textarea placeholder="Paste here..." spellcheck="false"></textarea>
       <br /><br />
-      <button class="blue size25">Parse</button>
-      <div class="size50">
-        <input placeholder="Enter value..." spellcheck="false" />
-        <button class="green">Find Index</button>
-      </div>
-      <div class="size25">
-        <input placeholder="Enter index..." spellcheck="false" />
-        <button class="green">Find Value</button>
+      <div class="controls">
+        <button class="blue size25">Parse</button>
+        <div>
+          <input placeholder="Enter value..." spellcheck="false" />
+          <button class="green">Find Index</button>
+        </div>
+        <div>
+          <input placeholder="Enter index..." spellcheck="false" />
+          <button class="green">Find Value</button>
+        </div>
       </div>
       <br /><br />
       <pre></pre>

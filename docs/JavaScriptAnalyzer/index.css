@@ -1,0 +1,10 @@
+#unhex > .controls {
+  display: grid;
+  grid-template-columns: 25% 50% 25%;
+}
+
+#unhex > .controls > div {
+  column-gap: 4px;
+  display: grid;
+  grid-template-columns: auto max-content;
+}
