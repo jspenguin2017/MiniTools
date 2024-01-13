@@ -84,7 +84,6 @@ onLoadTasks.push(() => {
     const input = $input.value.trim().replace(reSpace, "");
     try {
       if (input.endsWith("()")) {
-        // Remove eval() wrapper
         const result = eval(input.slice(0, -2));
         $output.textContent = `(${result})()`;
       } else {
