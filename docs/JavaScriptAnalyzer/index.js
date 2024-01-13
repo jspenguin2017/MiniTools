@@ -71,29 +71,3 @@ onLoadTasks.push(() => {
   };
   $findValueButton.onclick = handleFindValue;
 });
-
-// JS Unfuck
-onLoadTasks.push(() => {
-  const $container = document.getElementById("unfuck");
-  const $input = $container.querySelector(":scope > textarea");
-  const $output = $container.querySelector(":scope > pre");
-  const $button = $container.querySelector(":scope > button");
-
-  const reSpace = /\s/g;
-  const handleUnfuck = () => {
-    const input = $input.value.trim().replace(reSpace, "");
-    try {
-      if (input.endsWith("()")) {
-        const result = eval(input.slice(0, -2));
-        $output.textContent = `(${result})()`;
-      } else {
-        $output.textContent = eval(input);
-      }
-    } catch (err) {
-      $output.textContent = "Failed, maybe the other method will work?\n";
-      $output.textContent += "Error message:\n";
-      $output.textContent += err;
-    }
-  };
-  $button.onclick = handleUnfuck;
-});
