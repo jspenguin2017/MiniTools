@@ -3,7 +3,7 @@
     "prettier": "3.2.5"
   },
   "engines": {
-    "node": "20.15.0"
+    "node": "22.21.1"
   },
   "private": true,
   "scripts": {
