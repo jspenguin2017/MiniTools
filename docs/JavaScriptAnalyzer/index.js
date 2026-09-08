@@ -1,16 +1,8 @@
-"use strict";
-
-const onLoadTasks = [];
-
-window.onload = () => {
-  for (const f of onLoadTasks) {
-    f();
-  }
-};
+import { parseArray } from "./parse-array.js";
 
 // UnHex
 // Test data: ['\x6c\x6f\x67', '\x74\x65\x73\x74\x31\x32\x33', '\x74\x65\x73\x74\x33\x32\x31']
-onLoadTasks.push(() => {
+{
   const $container = document.getElementById("unhex");
   const $input = $container.querySelector(":scope > textarea");
   const [$findIndexInput, $findValueInput] = $container.querySelectorAll("input");
@@ -21,7 +13,7 @@ onLoadTasks.push(() => {
   const handleParse = () => {
     unHexData = [];
     try {
-      eval(`unHexData = ${$input.value};`);
+      unHexData = parseArray($input.value);
       $input.value = JSON.stringify(unHexData);
       $output.textContent = "Input successfully parsed.";
     } catch (err) {
@@ -70,4 +62,4 @@ onLoadTasks.push(() => {
     $output.textContent = unHexData[i];
   };
   $findValueButton.onclick = handleFindValue;
-});
+}

@@ -1,8 +1,6 @@
-"use strict";
-
-const assert = require("node:assert/strict");
-const { describe, it } = require("node:test");
-const { loadPage } = require("./helpers/load-page.js");
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { loadPage } from "./helpers/load-page.js";
 
 async function analyzer(context) {
   const window = await loadPage(context, "JavaScriptAnalyzer");
@@ -53,6 +51,39 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.input.value, '["text",42,true,null,{"a":1},["nested"]]');
     });
 
+    it("preserves literal values and empty slots when searching normalized input", async (context) => {
+      const tool = await analyzer(context);
+      assert.equal(
+        tool.parse("/* data */ [undefined,, NaN, Infinity, -0x10, {key: 'value'}, 'last',];"),
+        "Input successfully parsed.",
+      );
+      assert.equal(tool.input.value, '[null,null,null,null,-16,{"key":"value"},"last"]');
+      for (const [index, expected] of ["", "", "NaN", "Infinity", "-16", "[object Object]", "last"].entries()) {
+        assert.equal(tool.findValue(String(index)), expected);
+      }
+      assert.equal(tool.findIndex("last"), "6:last");
+      assert.equal(tool.findValue("-1"), "last");
+    });
+
+    it("rejects executable input without running it and clears previous data", async (context) => {
+      const tool = await analyzer(context);
+      context.mock.method(tool.window.console, "log", () => {});
+      for (const source of [
+        "[]; window.injected = true",
+        "[window.injected = true]",
+        "[(() => { window.injected = true; return 'value'; })()]",
+        "[`${window.injected = true}`]",
+        "[].constructor.constructor('window.injected = true')()",
+      ]) {
+        tool.parse("['old']");
+        assert.equal(tool.parse(source), "Could not parse input.");
+        assert.equal(tool.input.value, source);
+        assert.equal(tool.window.injected, undefined);
+        assert.equal(tool.findIndex("old"), "Nothing parsed.");
+        assert.equal(tool.findValue("0"), "Nothing parsed.");
+      }
+    });
+
     it("accepts an empty array and reports nothing parsed when searching it", async (context) => {
       const tool = await analyzer(context);
       assert.equal(tool.parse("[]"), "Input successfully parsed.");
@@ -61,8 +92,6 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findValue("0"), "Nothing parsed.");
     });
 
-    // Malformed array syntax exercises the normal parse error. Arbitrary programs
-    // and unexpected eval() result types are deliberately outside this suite.
     for (const source of ["", "['unterminated]"]) {
       it(`reports ${source ? "malformed array syntax" : "empty input"} without overwriting the input`, async (context) => {
         const tool = await analyzer(context);

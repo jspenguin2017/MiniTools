@@ -1,16 +1,14 @@
-"use strict";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { SourceTextModule } from "node:vm";
+import { JSDOM, VirtualConsole } from "jsdom";
 
-const assert = require("node:assert/strict");
-const { readFileSync } = require("node:fs");
-const path = require("node:path");
-const { fileURLToPath, pathToFileURL } = require("node:url");
-const { Script } = require("node:vm");
-const { JSDOM, VirtualConsole } = require("jsdom");
-
-// Load the real markup and its scripts in an isolated window for every test.
-// Give scripts their real filenames so Node attributes coverage to docs/.
-async function loadPage(context, name) {
-  const filename = path.resolve(__dirname, "../../docs", name, "index.html");
+// Load the real markup and its modules in an isolated window for every test.
+// Give modules their real filenames so Node attributes coverage to docs/.
+export async function loadPage(context, name) {
+  const filename = path.resolve(import.meta.dirname, "../../docs", name, "index.html");
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", (error) => errors.push(error));
@@ -25,14 +23,29 @@ async function loadPage(context, name) {
   });
 
   const loaded = new Promise((resolve) => dom.window.addEventListener("load", resolve, { once: true }));
+  const modules = new Map();
+  const loadModule = (moduleFilename) => {
+    if (!modules.has(moduleFilename)) {
+      modules.set(
+        moduleFilename,
+        new SourceTextModule(readFileSync(moduleFilename, "utf8"), {
+          identifier: moduleFilename,
+          context: dom.getInternalVMContext(),
+        }),
+      );
+    }
+    return modules.get(moduleFilename);
+  };
   for (const element of dom.window.document.querySelectorAll("script[src]")) {
-    const scriptFilename = fileURLToPath(element.src);
-    new Script(readFileSync(scriptFilename, "utf8"), { filename: scriptFilename }).runInContext(
-      dom.getInternalVMContext(),
-    );
+    assert.equal(element.type, "module");
+    const module = loadModule(fileURLToPath(element.src));
+    if (module.status === "unlinked") {
+      await module.link((specifier, referencingModule) =>
+        loadModule(fileURLToPath(new URL(specifier, pathToFileURL(referencingModule.identifier)))),
+      );
+    }
+    await module.evaluate();
   }
   await loaded;
   return dom.window;
 }
-
-module.exports = { loadPage };

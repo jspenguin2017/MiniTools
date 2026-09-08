@@ -1,13 +1,3 @@
-"use strict";
-
-const onLoadTasks = [];
-
-window.onload = () => {
-  for (const f of onLoadTasks) {
-    f();
-  }
-};
-
 const defaultTextTransformOptions = {
   join: ",",
 };
@@ -45,7 +35,7 @@ const createTextTransform = (id, implementation) => {
 };
 
 // Text Transform: Links to Comma Separated Domain Array
-onLoadTasks.push(() => {
+{
   const reDomainExtract = /https?:\/\/([^:/?#\s]+)/; // There can be extra text before the link, so no start anchor
   const reDomainDuplicate = /https?:.*?https?:/;
   const reDomainCleanup = /^www?\d*?\./; // TODO: What about "www.com" or similar domains?
@@ -70,10 +60,10 @@ onLoadTasks.push(() => {
     return [out.sort(), warn, defaultTextTransformOptions];
   };
   createTextTransform("links-to-domains", handler);
-});
+}
 
 // Text Transform: Merge Comma Separated Domain Array
-onLoadTasks.push(() => {
+{
   const handler = (lines) => {
     const out = [];
     const warn = [];
@@ -105,11 +95,11 @@ onLoadTasks.push(() => {
     return [out.sort(), warn, defaultTextTransformOptions];
   };
   createTextTransform("merge-domains", handler);
-});
+}
 
 // Text Transform: Unmerge Comma Separated Domain Array
 // TODO: Quadratic running time, can this be optimized?
-onLoadTasks.push(() => {
+{
   const handler = (lines) => {
     const out = [];
     const warn = [];
@@ -145,10 +135,10 @@ onLoadTasks.push(() => {
     return [out.sort(), warn, defaultTextTransformOptions];
   };
   createTextTransform("unmerge-domains", handler);
-});
+}
 
 // Text Transform: Unicode Escape
-onLoadTasks.push(() => {
+{
   const handler = (lines) => {
     const out = [];
     const warn = [];
@@ -171,4 +161,4 @@ onLoadTasks.push(() => {
     ];
   };
   createTextTransform("unicode-escape", handler);
-});
+}

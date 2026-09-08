@@ -1,8 +1,6 @@
-"use strict";
-
-const assert = require("node:assert/strict");
-const { describe, it } = require("node:test");
-const { loadPage } = require("./helpers/load-page.js");
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { loadPage } from "./helpers/load-page.js";
 
 function controls(window, id) {
   const container = window.document.getElementById(id);
