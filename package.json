@@ -1,5 +1,26 @@
 {
+  "name": "minitools",
+  "version": "1.0.0",
+  "description": "Browser-based tools for working with filter lists and analyzing JavaScript arrays.",
+  "keywords": [
+    "developer-tools",
+    "filters",
+    "javascript",
+    "unicode"
+  ],
+  "homepage": "https://jspenguin2017.github.io/MiniTools/",
+  "bugs": {
+    "url": "https://github.com/jspenguin2017/MiniTools/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jspenguin2017/MiniTools.git"
+  },
+  "license": "MIT",
+  "author": "Hugo Xu",
+  "type": "commonjs",
   "devDependencies": {
+    "jsdom": "30.0.1",
     "prettier": "3.9.6"
   },
   "engines": {
@@ -7,6 +28,7 @@
   },
   "private": true,
   "scripts": {
-    "lint": "prettier . --write"
+    "format": "prettier . --write",
+    "test": "node --test --experimental-test-coverage --test-coverage-include=\"docs/**/*.js\" --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \"test/**/*.test.js\""
   }
 }

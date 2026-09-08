@@ -46,7 +46,7 @@ const createTextTransform = (id, implementation) => {
 
 // Text Transform: Links to Comma Separated Domain Array
 onLoadTasks.push(() => {
-  const reDomainExtract = /https?:\/\/([^:/?#]+)/; // There can be extra text before the link, so no start anchor
+  const reDomainExtract = /https?:\/\/([^:/?#\s]+)/; // There can be extra text before the link, so no start anchor
   const reDomainDuplicate = /https?:.*?https?:/;
   const reDomainCleanup = /^www?\d*?\./; // TODO: What about "www.com" or similar domains?
   const handler = (lines) => {
