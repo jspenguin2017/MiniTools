@@ -1,33 +1,50 @@
 # Mini Tools
 
-Various mini tools
+Mini Tools is a collection of browser tools for preparing filter lists and inspecting JavaScript arrays.
 
-Please open an issue if there is something you want me to know.
+[Open Mini Tools](https://jspenguin2017.github.io/MiniTools/)
 
-### [Open](https://jspenguin2017.github.io/MiniTools/)
+## Features
 
-### Development
+### Filters Toolkit
 
-Use the Node.js version specified in `package.json`, then run `npm ci` to install development dependencies.
+Transform pasted text to help write and maintain filters:
 
-- `npm test` runs the tests in `test/` and requires 100% line, branch, and function coverage for the JavaScript in
-  `docs/`.
-- `npm run format` formats the repository with Prettier.
+- **Links to domains:** Extract the domain from the first link on each line and produce a sorted, comma-separated list.
+  Duplicates are preserved, with warnings for missing or extra links.
+- **Merge domains:** Combine comma-separated domain lists, sort the result, and remove duplicate and invalid entries
+  with warnings.
+- **Unmerge domains:** Remove domains listed on subsequent lines from the first line, removing one occurrence per match
+  and warning about unmatched entries.
+- **Unicode escape:** Convert non-ASCII characters to Unicode escape sequences.
 
-JavaScript uses JSDoc annotations for IDE type inference. Development dependencies include Node.js and jsdom type
-definitions so editors can also resolve the test helpers and browser controls they expose.
+Each transformation provides a **Copy Output** button to copy the result without warnings.
 
-Tests use Node's built-in test runner and jsdom to load the actual HTML and JavaScript, click controls, and check the
-results. The test runner uses Node's experimental VM modules to execute browser modules in isolated jsdom windows.
-Clipboard copying is simulated because jsdom has no system clipboard. Array literal parsing and rejection of executable
-input are covered.
+### JavaScript Analyzer
 
-The source in `docs/` uses ES modules, runs directly in a browser over HTTP, and requires no build step. Each page loads
-one module per functional area. Filters Toolkit modules use `text-transform.js` to read lines, display results and
-warnings, and copy output; each module owns its event listeners and transformation logic. This utility stays within
-Filters Toolkit because the analyzer has different controls and output behavior. Tests capture the current behavior,
-including Unmerge sorting its output (despite the page's description) and Find Value accepting integer prefixes through
-`parseInt()`.
+**Unhex** decodes escaped strings in JavaScript array literals and displays the parsed array as JSON. Paste the full
+array, including square brackets, and select **Parse**. Then use **Find Index** to search string entries for a substring
+or **Find Value** to look up an entry by index. Negative indices count from the end of the array.
 
-jsdom is pinned to 30.0.1, published on July 29, 2026: the latest stable release at least seven days old when selected
-on September 8, 2026. Installation used the same seven-day cutoff for transitive dependencies.
+Ordinary arrays are also supported. Input is parsed as data; JavaScript expressions and statements are not executed.
+
+## Development quick start
+
+Use the Node.js version specified in [package.json](package.json), then clone the repository and install dependencies:
+
+```sh
+git clone https://github.com/jspenguin2017/MiniTools.git
+cd MiniTools
+npm ci
+```
+
+Serve `docs/` with a local HTTP server. For example, with Python 3 installed:
+
+```sh
+python3 -m http.server 8000 --directory docs
+```
+
+Open [localhost:8000](http://localhost:8000/). Edit the files in `docs/` and refresh the browser to see changes. No
+build step is required.
+
+Run `npm test` to check your changes and `npm run format` to format the repository.

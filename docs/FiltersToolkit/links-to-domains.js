@@ -2,7 +2,7 @@ import { createTextTransform } from "./text-transform.js";
 
 const DOMAIN_DUPLICATE_PATTERN = /https?:.*?https?:/;
 
-// There can be extra text before the link, so no start anchor
+// There can be extra text before the link, so omit the start anchor
 const DOMAIN_EXTRACT_PATTERN = /https?:\/\/([^:/?#\s]+)/;
 
 // Keep at least two domain labels, preserving "www.com" and similar domains

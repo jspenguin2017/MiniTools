@@ -166,7 +166,7 @@ class ArrayLiteralTokenizer {
   }
 
   /**
-   * @param {number} length Required hex digits, unless a Unicode escape uses braces.
+   * @param {number} length Required number of hex digits, unless a Unicode escape uses braces.
    * @returns {string} The escaped code unit or code point.
    */
   readHexEscape(length) {
