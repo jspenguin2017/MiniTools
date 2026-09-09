@@ -50,6 +50,18 @@ const cases = {
       expected: "Output:\na.example,b.example,c.example,d.example,sub.e.example,w.f.example",
     },
     {
+      name: "preserves www-like registrable domains and only removes a leading prefix once",
+      input:
+        "https://www.com\nhttps://ww.com\nhttps://www12.com\nhttps://ww2.com\nhttps://sub.www.example.com\nhttps://www.www.example.com\nhttps://wwwx.example.com\nhttps://wwww.example.com",
+      expected:
+        "Output:\nsub.www.example.com,ww.com,ww2.com,www.com,www.example.com,www12.com,wwww.example.com,wwwx.example.com",
+    },
+    {
+      name: "preserves duplicate domains created by prefix cleanup",
+      input: "https://www.a.example/path\nhttp://a.example\nhttps://ww12.a.example",
+      expected: "Output:\na.example,a.example,a.example",
+    },
+    {
       name: "warns about extra links and extracts only the first link",
       input: "  https://b.example http://ignored.example https://also-ignored.example  \nhttp://a.example",
       expected:
@@ -95,6 +107,18 @@ const cases = {
       input: "invalid,",
       expected: 'Warnings:\nInvalid entry "invalid"\nInvalid entry ""\nOnly one array found!\n\nOutput:\n',
     },
+    {
+      name: "detects duplicates after trimming and distinguishes exact entries",
+      input: " Example.com,example.com,a.example \nexample.com, Example.com ,sub.a.example",
+      expected:
+        'Warnings:\nDuplicate entry "example.com"\nDuplicate entry "Example.com"\n\nOutput:\nExample.com,a.example,example.com,sub.a.example',
+    },
+    {
+      name: "counts invalid nonblank lines as arrays and warns for every invalid occurrence",
+      input: "invalid,invalid\n,",
+      expected:
+        'Warnings:\nInvalid entry "invalid"\nInvalid entry "invalid"\nInvalid entry ""\nInvalid entry ""\n\nOutput:\n',
+    },
   ],
   "unmerge-domains": [
     {
@@ -138,6 +162,16 @@ const cases = {
       input: "a.example\nb.example,",
       expected: 'Warnings:\nNo entry "b.example"\nNo entry ""\n\nOutput:\na.example',
     },
+    {
+      name: "matches complete entries case-sensitively without removing related domains",
+      input: "Example.com,example.com,sub.example.com\nexample.com,EXAMPLE.COM",
+      expected: 'Warnings:\nNo entry "EXAMPLE.COM"\n\nOutput:\nExample.com,sub.example.com',
+    },
+    {
+      name: "treats prototype-related names as literal entries",
+      input: "__proto__,constructor,toString,hasOwnProperty\nconstructor,__proto__,constructor",
+      expected: 'Warnings:\nNo entry "constructor"\n\nOutput:\nhasOwnProperty,toString',
+    },
   ],
   "unicode-escape": [
     {
@@ -159,6 +193,16 @@ const cases = {
       name: "preserves leading, internal, and trailing newlines without trimming whitespace",
       input: "\n  \u00e9 \n\n\u4e2d\n",
       expected: "Output:\n\n  \\u00E9 \n\n\\u4E2D\n",
+    },
+    {
+      name: "preserves lone surrogates and escapes Unicode separators and spaces",
+      input: "\ud800x\udfff\u00a0\u2028\u2029\ufeff",
+      expected: "Output:\n\\uD800x\\uDFFF\\u00A0\\u2028\\u2029\\uFEFF",
+    },
+    {
+      name: "normalizes CR and CRLF through the textarea while preserving empty lines",
+      input: "\r\u00e9\r\n\r\u4e2d\r",
+      expected: "Output:\n\n\\u00E9\n\n\\u4E2D\n",
     },
   ],
 };
@@ -200,11 +244,10 @@ describe("Filters Toolkit", () => {
         const window = await loadPage(context, "FiltersToolkit");
         const tool = controls(window, id);
         /** @type {string[]} */
-        const copied = [];
+        const inputsDuringCopy = [];
         // jsdom has no system clipboard. Capture text passed to the Clipboard API.
-        const writeText = context.mock.fn(async (/** @type {string} */ text) => {
-          assert.equal(tool.input.value, "new, untransformed input");
-          copied.push(text);
+        const writeText = context.mock.fn(async (/** @type {string} */ _text) => {
+          inputsDuringCopy.push(tool.input.value);
         });
         Object.defineProperty(window.navigator, "clipboard", {
           value: { writeText },
@@ -213,10 +256,17 @@ describe("Filters Toolkit", () => {
           tool.input.value = example.input;
           tool.transform.click();
           tool.input.value = "new, untransformed input";
+          tool.input.focus();
           tool.input.setSelectionRange(2, 7, "backward");
           tool.copy.click();
-          assert.equal(copied[copied.length - 1], example.expected.split("Output:\n")[1]);
+          const call = writeText.mock.calls.at(-1);
+          assert.ok(call);
+          await call.result;
+          assert.equal(call.arguments.length, 1);
+          assert.equal(call.arguments[0], example.expected.split("Output:\n")[1]);
+          assert.equal(inputsDuringCopy.at(-1), "new, untransformed input");
           assert.equal(tool.input.value, "new, untransformed input");
+          assert.equal(window.document.activeElement, tool.input);
           assert.equal(tool.input.selectionStart, 2);
           assert.equal(tool.input.selectionEnd, 7);
           assert.equal(tool.input.selectionDirection, "backward");
@@ -224,29 +274,59 @@ describe("Filters Toolkit", () => {
         }
         assert.equal(writeText.mock.callCount(), 3);
       });
+
+      it("recomputes output and warnings when transforming repeatedly", async (context) => {
+        const window = await loadPage(context, "FiltersToolkit");
+        const tool = controls(window, id);
+        const warning = examples.find((example) => example.expected.startsWith("Warnings:"));
+        for (const example of [
+          warning ?? examples[1],
+          examples[0],
+          examples[0],
+          { input: "", expected: "Output:\n" },
+        ]) {
+          tool.input.value = example.input;
+          tool.transform.click();
+          assert.equal(tool.output.textContent, example.expected);
+          assert.equal(tool.copy.classList.contains("hidden"), false);
+        }
+      });
     });
   }
 
   it("keeps transforms and their copy buffers independent", async (context) => {
     const window = await loadPage(context, "FiltersToolkit");
-    const links = controls(window, "links-to-domains");
-    const unicode = controls(window, "unicode-escape");
-    links.input.value = "https://a.example";
-    links.transform.click();
-    unicode.input.value = "\u00e9";
-    unicode.transform.click();
-    assert.equal(links.output.textContent, "Output:\na.example");
-    assert.equal(unicode.output.textContent, "Output:\n\\u00E9");
-    const writeText = context.mock.fn(async (/** @type {string} */ text) => {
-      assert.equal(text, "a.example");
-      assert.equal(links.input.value, "https://a.example");
-      assert.equal(unicode.input.value, "\u00e9");
-    });
+    const tools = Object.entries(cases).map(([id, examples]) => ({ ...controls(window, id), example: examples[0] }));
+    const writeText = context.mock.fn(async (/** @type {string} */ _text) => {});
     Object.defineProperty(window.navigator, "clipboard", {
       value: { writeText },
     });
-    links.copy.click();
-    assert.equal(writeText.mock.callCount(), 1);
+    for (const tool of tools) {
+      tool.input.value = tool.example.input;
+      tool.transform.click();
+    }
+    for (const tool of tools.toReversed()) {
+      tool.copy.click();
+      const call = writeText.mock.calls.at(-1);
+      assert.ok(call);
+      await call.result;
+      assert.equal(call.arguments.length, 1);
+      assert.equal(call.arguments[0], tool.example.expected.slice("Output:\n".length));
+      for (const other of tools) {
+        assert.equal(other.output.textContent, other.example.expected);
+        assert.equal(other.input.value, other.example.input.replace(/\r\n?/g, "\n"));
+      }
+    }
+    assert.equal(writeText.mock.callCount(), tools.length);
+  });
+
+  it("preserves the complete ASCII range after textarea newline normalization", async (context) => {
+    const window = await loadPage(context, "FiltersToolkit");
+    const tool = controls(window, "unicode-escape");
+    const ascii = String.fromCharCode(...Array.from({ length: 128 }, (_, index) => index));
+    tool.input.value = ascii;
+    tool.transform.click();
+    assert.equal(tool.output.textContent, "Output:\n" + ascii.replace(/\r/g, "\n"));
   });
 
   it("renders input and warnings as text without inserting HTML", async (context) => {

@@ -63,8 +63,13 @@ const handleFindValue = () => {
     $output.textContent = "Index out of range.";
     return;
   }
-  // The DOM setter accepts data values, converting nullish values to empty text and others to strings
-  /** @type {{ textContent: import("./parse-array.js").ArrayLiteralValue }} */ ($output).textContent = unHexData[i];
+  try {
+    // The DOM setter converts nullish values to empty text and other values to strings
+    /** @type {{ textContent: import("./parse-array.js").ArrayLiteralValue }} */ ($output).textContent = unHexData[i];
+  } catch {
+    // Literal objects can shadow toString; JSON also handles arrays containing these objects
+    $output.textContent = JSON.stringify(unHexData[i]);
+  }
 };
 
 $findValueButton.addEventListener("click", handleFindValue);

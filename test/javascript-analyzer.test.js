@@ -150,6 +150,38 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findIndex("original"), "0:original");
       assert.equal(tool.findValue("0"), "original");
     });
+
+    it("keeps sparse nonempty arrays searchable and replaces them with a truly empty array", async (context) => {
+      const tool = await analyzer(context);
+      assert.equal(tool.parse("[,,]"), "Input successfully parsed.");
+      assert.equal(tool.input.value, "[null,null]");
+      assert.equal(tool.findIndex(""), "");
+      assert.equal(tool.findValue("0"), "");
+      assert.equal(tool.findValue("-2"), "");
+      assert.equal(tool.findValue("2"), "Index out of range.");
+      assert.equal(tool.findValue("-3"), "Index out of range.");
+      assert.equal(tool.parse("[]"), "Input successfully parsed.");
+      assert.equal(tool.findIndex(""), "Nothing parsed.");
+      assert.equal(tool.findValue("-1"), "Nothing parsed.");
+    });
+
+    it("round-trips decoded strings through the displayed JSON on a second parse", async (context) => {
+      const tool = await analyzer(context);
+      const source = String.raw`['\x00\n\t\uD800', '\u{1F600}', '\\x41', '\"']`;
+      const values = ["\0\n\t\ud800", "\u{1f600}", "\\x41", '"'];
+      assert.equal(tool.parse(source), "Input successfully parsed.");
+      const normalized = JSON.stringify(values);
+      assert.equal(tool.input.value, normalized);
+      for (let pass = 0; pass < 2; pass++) {
+        for (const [index, value] of values.entries()) {
+          assert.equal(tool.findValue(String(index)), value);
+        }
+        assert.equal(tool.findIndex("\u{1f600}"), "1:\u{1f600}");
+        assert.equal(tool.findIndex("\\x41"), "2:\\x41");
+        assert.equal(tool.parse(tool.input.value), "Input successfully parsed.");
+        assert.equal(tool.input.value, normalized);
+      }
+    });
   });
 
   describe("find index", () => {
@@ -186,6 +218,17 @@ describe("JavaScript Analyzer", () => {
       tool.parse('[42, null, false, {}, ["nested"]]');
       assert.equal(tool.findIndex(""), "");
     });
+
+    it("preserves search whitespace and matches decoded Unicode literally", async (context) => {
+      const tool = await analyzer(context);
+      tool.parse(String.raw`['\u00e9', 'e\u0301', '\u{1F600}', ' padded ', 'padded']`);
+      assert.equal(tool.findIndex("\u00e9"), "0:\u00e9");
+      assert.equal(tool.findIndex("e\u0301"), "1:e\u0301");
+      assert.equal(tool.findIndex("\u{1f600}"), "2:\u{1f600}");
+      assert.equal(tool.findIndex(" padded "), "3: padded ");
+      assert.equal(tool.findIndex("padded"), "3: padded \n4:padded");
+      assert.equal(tool.findIndex("\\u00e9"), "");
+    });
   });
 
   describe("find value", () => {
@@ -216,7 +259,7 @@ describe("JavaScript Analyzer", () => {
       });
     }
 
-    for (const index of ["", " ", "abc", "NaN", "Infinity", "9".repeat(400)]) {
+    for (const index of ["", " ", "abc", "NaN", "Infinity", "-Infinity", "+", "-", "0x", "\uff11", "9".repeat(400)]) {
       it(`rejects ${index.length > 20 ? "an overflowing integer" : JSON.stringify(index)} as an invalid integer`, async (context) => {
         const tool = await analyzer(context);
         tool.parse('["first"]');
@@ -224,7 +267,7 @@ describe("JavaScript Analyzer", () => {
       });
     }
 
-    for (const index of ["3", "100", "-4", "-100"]) {
+    for (const index of ["3", "100", "-4", "-100", "9007199254740992", "-9007199254740992"]) {
       it(`rejects out-of-range index ${index}`, async (context) => {
         const tool = await analyzer(context);
         tool.parse('["first", "middle", "last"]');
@@ -239,6 +282,24 @@ describe("JavaScript Analyzer", () => {
         assert.equal(tool.findValue(String(index)), expected);
       }
     });
+
+    for (const source of [
+      '{"toString":null}',
+      '{"toString":"<b>data</b>","valueOf":42}',
+      '{"toString":{"nested":true}}',
+      '[{"toString":false}]',
+      '[[{"toString":[]}],"tail"]',
+    ]) {
+      it(`displays ${source} as JSON when it cannot be converted to text`, async (context) => {
+        const tool = await analyzer(context);
+        assert.equal(tool.parse(`[${source},"searchable"]`), "Input successfully parsed.");
+        assert.equal(tool.findValue("0"), source);
+        assert.equal(tool.output.children.length, 0);
+        assert.equal(tool.findIndex("search"), "1:searchable");
+        assert.equal(tool.findValue("-2"), source);
+        assert.equal(tool.findValue("1"), "searchable");
+      });
+    }
 
     it("replaces errors with a successful result on the next search", async (context) => {
       const tool = await analyzer(context);
