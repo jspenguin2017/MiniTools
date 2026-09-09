@@ -147,17 +147,17 @@ const cases = {
     },
     {
       name: "escapes non-ASCII code units as uppercase, four-digit hex",
-      input: "\u0080éÿĀ中\uffff",
+      input: "\u0080\u00e9\u00ff\u0100\u4e2d\uffff",
       expected: "Output:\n\\u0080\\u00E9\\u00FF\\u0100\\u4E2D\\uFFFF",
     },
     {
       name: "escapes astral characters as surrogate pairs and combining marks separately",
-      input: "😀e\u0301",
+      input: "\u{1f600}e\u0301",
       expected: "Output:\n\\uD83D\\uDE00e\\u0301",
     },
     {
       name: "preserves leading, internal, and trailing newlines without trimming whitespace",
-      input: "\n  é \n\n中\n",
+      input: "\n  \u00e9 \n\n\u4e2d\n",
       expected: "Output:\n\n  \\u00E9 \n\n\\u4E2D\n",
     },
   ],
@@ -233,14 +233,14 @@ describe("Filters Toolkit", () => {
     const unicode = controls(window, "unicode-escape");
     links.input.value = "https://a.example";
     links.transform.click();
-    unicode.input.value = "é";
+    unicode.input.value = "\u00e9";
     unicode.transform.click();
     assert.equal(links.output.textContent, "Output:\na.example");
     assert.equal(unicode.output.textContent, "Output:\n\\u00E9");
     const writeText = context.mock.fn(async (/** @type {string} */ text) => {
       assert.equal(text, "a.example");
       assert.equal(links.input.value, "https://a.example");
-      assert.equal(unicode.input.value, "é");
+      assert.equal(unicode.input.value, "\u00e9");
     });
     Object.defineProperty(window.navigator, "clipboard", {
       value: { writeText },

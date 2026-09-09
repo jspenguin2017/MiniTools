@@ -21,8 +21,12 @@ describe("array literal parser", () => {
     ["adjacent and empty comments", "/**/// before\n[/**/1,/**/2/**/]/**/;/**///", [1, 2]],
     ["line comment terminators", "[// CR\r1,// CRLF\r\n2,// LS\u20283,// PS\u20294,// LF\n5]// EOF", [1, 2, 3, 4, 5]],
     ["Unicode whitespace", "\ufeff[\u00a0' spaced '\u2028]\u2029", [" spaced "]],
-    ["hexadecimal escapes", String.raw`['\x00\x6c\x6F\x67\xFF']`, ["\0logÿ"]],
-    ["Unicode escapes", String.raw`['\u0041\u00e9\uD83D\uDE00\u{1F600}\u{10ffff}']`, ["Aé😀😀\u{10ffff}"]],
+    ["hexadecimal escapes", String.raw`['\x00\x6c\x6F\x67\xFF']`, ["\0log\u00ff"]],
+    [
+      "Unicode escapes",
+      String.raw`['\u0041\u00e9\uD83D\uDE00\u{1F600}\u{10ffff}']`,
+      ["A\u00e9\u{1f600}\u{1f600}\u{10ffff}"],
+    ],
     ["lone surrogates", String.raw`['\uD800', '\u{DFFF}']`, ["\ud800", "\udfff"]],
     ["control escapes", String.raw`['\0\b\f\n\r\t\v']`, ["\0\b\f\n\r\t\v"]],
     ["quotes and identity escapes", String.raw`['\'\"\\\/\q', "\"\'\\"]`, ["'\"\\/q", "\"'\\"]],
@@ -53,8 +57,8 @@ describe("array literal parser", () => {
     ["comments after a sign", "[- /* comment */ 1, + // comment\n 2]", [-1, 2]],
     [
       "object keys",
-      "[{a: 1, $key: 2, _key: 3, café: 4, 0x10: 5, 1.5: 6, '': 7, true: 8}]",
-      [{ "a": 1, "$key": 2, "_key": 3, "café": 4, "16": 5, "1.5": 6, "": 7, "true": 8 }],
+      "[{a: 1, $key: 2, _key: 3, caf\u00e9: 4, 0x10: 5, 1.5: 6, '': 7, true: 8}]",
+      [{ "a": 1, "$key": 2, "_key": 3, "caf\u00e9": 4, "16": 5, "1.5": 6, "": 7, "true": 8 }],
     ],
     [
       "Unicode identifier code points",
