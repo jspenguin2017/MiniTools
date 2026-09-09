@@ -110,6 +110,12 @@ const cases = {
       expected: "Output:\na.example,a.example,b.example",
     },
     {
+      name: "exhausts duplicate and empty entries across arrays before warning in input order",
+      input:
+        " b.example, a.example, , a.example, , a.example \n a.example, \n a.example,a.example,a.example,,\n b.example,b.example",
+      expected: 'Warnings:\nNo entry "a.example"\nNo entry ""\nNo entry "b.example"\n\nOutput:\n',
+    },
+    {
       name: "warns about missing entries and entries that have already been removed",
       input: "a.example,b.example\na.example, missing.example\na.example,b.example",
       expected: 'Warnings:\nNo entry "missing.example"\nNo entry "a.example"\n\nOutput:\n',
