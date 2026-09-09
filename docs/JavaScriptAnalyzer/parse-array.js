@@ -21,10 +21,12 @@
  */
 export const parseArray = (source) => {
   let index = 0;
+
   /** @type {() => never} Stop parsing at the current position. */
   const invalid = () => {
     throw new SyntaxError(`Invalid array literal at position ${index}.`);
   };
+
   /**
    * @param {RegExp} pattern Sticky expression to match at the current position.
    * @returns {string | null} Matched text, advancing the position only on success.
@@ -38,10 +40,12 @@ export const parseArray = (source) => {
     index = pattern.lastIndex;
     return match[0];
   };
+
   /** @returns {void} Consume whitespace and comments. */
   const skipSpace = () => {
     read(/(?:\s|\/\/[^\r\n\u2028\u2029]*|\/\*[\s\S]*?\*\/)*/y);
   };
+
   /**
    * @param {string} token Literal token to consume after whitespace and comments.
    * @returns {boolean} Whether the token was consumed.
@@ -54,6 +58,7 @@ export const parseArray = (source) => {
     }
     return false;
   };
+
   /**
    * @param {string} token Required token after whitespace and comments.
    * @returns {void}
@@ -74,13 +79,13 @@ export const parseArray = (source) => {
     return token.slice(1, -1).replace(
       /\\(u\{[^}]*\}|x[\s\S]{2}|u[\s\S]{4}|\r\n|[\s\S])/g,
       /**
-       * @param {string} match Full escape sequence, including its backslash.
+       * @param {string} _match Full escape sequence, including its backslash.
        * @param {string} escape Captured escape without the backslash.
        * @param {number} offset Position in the unquoted string body.
        * @param {string} body Unquoted string body.
        * @returns {string} Decoded character or line continuation.
        */
-      (match, escape, offset, body) => {
+      (_match, escape, offset, body) => {
         if (escape[0] === "x" || escape[0] === "u") {
           if (!/^(?:x[\da-fA-F]{2}|u[\da-fA-F]{4}|u\{[\da-fA-F]+\})$/.test(escape)) {
             invalid();
@@ -114,11 +119,13 @@ export const parseArray = (source) => {
       },
     );
   };
+
   /** @returns {string | null} Unsigned numeric token, or null if none starts here. */
   const readNumber = () =>
     read(
       /0[xX][\da-fA-F](?:_?[\da-fA-F])*|0[bB][01](?:_?[01])*|0[oO][0-7](?:_?[0-7])*|(?:(?:0|[1-9](?:_?\d)*)(?:\.(?:\d(?:_?\d)*)?)?|\.\d(?:_?\d)*)(?:[eE][+-]?\d(?:_?\d)*)?|Infinity|NaN/y,
     );
+
   /**
    * @param {string} token Numeric token returned by readNumber.
    * @returns {number} Numeric value with separator underscores removed.

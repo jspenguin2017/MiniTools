@@ -1,9 +1,14 @@
 import { createTextTransform } from "./text-transform.js";
 
 const textTransform = createTextTransform(/** @type {HTMLElement} */ (document.getElementById("links-to-domains")));
-const reDomainExtract = /https?:\/\/([^:/?#\s]+)/; // There can be extra text before the link, so no start anchor
+
 const reDomainDuplicate = /https?:.*?https?:/;
-const reDomainCleanup = /^www?\d*?\./; // TODO: What about "www.com" or similar domains?
+
+// There can be extra text before the link, so no start anchor
+const reDomainExtract = /https?:\/\/([^:/?#\s]+)/;
+
+// Keep at least two domain labels, preserving "www.com" and similar domains
+const reDomainCleanup = /^www?\d*?\.(?=[^.]+\.[^.]+)/;
 
 textTransform.transformButton.addEventListener("click", () => {
   /** @type {string[]} */

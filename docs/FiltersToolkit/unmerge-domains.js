@@ -36,7 +36,7 @@ textTransform.transformButton.addEventListener("click", () => {
     warn.push("Only one array found!");
   }
   if (count > 0) {
-    // A nonzero count means the first array has been read.
+    // A nonzero count means the first array has been read
     for (const d of /** @type {string[]} */ (arr)) out.push(d);
   }
   textTransform.setOutput(out.sort().join(","), warn);

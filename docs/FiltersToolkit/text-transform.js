@@ -20,7 +20,6 @@ export const createTextTransform = ($container) => {
     $container.querySelectorAll(":scope > button")
   );
   let output = "";
-
   return {
     transformButton: $transform,
     copyButton: $copy,

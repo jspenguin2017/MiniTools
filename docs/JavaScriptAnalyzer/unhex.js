@@ -1,7 +1,5 @@
 import { parseArray } from "./parse-array.js";
 
-// UnHex
-// Test data: ['\x6c\x6f\x67', '\x74\x65\x73\x74\x31\x32\x33', '\x74\x65\x73\x74\x33\x32\x31']
 const $container = /** @type {HTMLElement} */ (document.getElementById("unhex"));
 const $input = /** @type {HTMLTextAreaElement} */ ($container.querySelector(":scope > textarea"));
 const [$findIndexInput, $findValueInput] = $container.querySelectorAll("input");
@@ -10,6 +8,7 @@ const [$parseButton, $findIndexButton, $findValueButton] = $container.querySelec
 
 /** @type {import("./parse-array.js").ArrayLiteralValue[]} Data from the last successful parse. */
 let unHexData = [];
+
 /** @returns {void} Parse the input as data and display its JSON representation. */
 const handleParse = () => {
   unHexData = [];
@@ -22,6 +21,7 @@ const handleParse = () => {
     $output.textContent = "Could not parse input.";
   }
 };
+
 $parseButton.addEventListener("click", handleParse);
 
 /** @returns {void} Display indices and values of string entries containing the query. */
@@ -42,6 +42,7 @@ const handleFindIndex = () => {
   }
   $output.textContent = output;
 };
+
 $findIndexButton.addEventListener("click", handleFindIndex);
 
 /** @returns {void} Display the entry at the requested index, allowing negative indices. */
@@ -65,4 +66,5 @@ const handleFindValue = () => {
   // The DOM setter accepts data values, converting nullish values to empty text and others to strings.
   /** @type {{ textContent: import("./parse-array.js").ArrayLiteralValue }} */ ($output).textContent = unHexData[i];
 };
+
 $findValueButton.addEventListener("click", handleFindValue);
