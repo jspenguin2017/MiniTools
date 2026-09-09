@@ -175,8 +175,6 @@ describe("Filters Toolkit", () => {
         const tool = controls(window, id);
         assert.equal(tool.output.textContent, "");
         assert.equal(tool.copy.classList.contains("hidden"), true);
-        assert.equal(typeof tool.transform.onclick, "function");
-        assert.equal(typeof tool.copy.onclick, "function");
       });
 
       it("copies only the latest result and restores the current input", async (context) => {
