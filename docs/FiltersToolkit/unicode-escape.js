@@ -1,8 +1,9 @@
 import { createTextTransform } from "./text-transform.js";
 
-const textTransform = createTextTransform(document.getElementById("unicode-escape"));
+const textTransform = createTextTransform(/** @type {HTMLElement} */ (document.getElementById("unicode-escape")));
 
 textTransform.transformButton.addEventListener("click", () => {
+  /** @type {string[]} */
   const out = [];
   for (const line of textTransform.getLines()) {
     const chars = line.split("");

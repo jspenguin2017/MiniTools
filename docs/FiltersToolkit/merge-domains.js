@@ -1,10 +1,13 @@
 import { createTextTransform } from "./text-transform.js";
 
-const textTransform = createTextTransform(document.getElementById("merge-domains"));
+const textTransform = createTextTransform(/** @type {HTMLElement} */ (document.getElementById("merge-domains")));
 
 textTransform.transformButton.addEventListener("click", () => {
+  /** @type {string[]} */
   const out = [];
+  /** @type {string[]} */
   const warn = [];
+  /** @type {Set<string>} */
   const set = new Set();
   let count = 0;
   for (let line of textTransform.getLines()) {

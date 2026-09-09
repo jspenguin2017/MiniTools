@@ -2,17 +2,32 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { loadPage } from "./helpers/load-page.js";
 
+/** @typedef {import("node:test").Mock<Document["execCommand"]>} CopyCommandMock */
+
+/**
+ * Find the controls for one Filters Toolkit container.
+ * @param {import("jsdom").DOMWindow} window Loaded test window.
+ * @param {string} id Tool container ID in the page markup.
+ */
 function controls(window, id) {
-  const container = window.document.getElementById(id);
+  const container = /** @type {HTMLElement} */ (window.document.getElementById(id));
   const [transform, copy] = container.querySelectorAll("button");
   return {
-    input: container.querySelector("textarea"),
-    output: container.querySelector("pre"),
+    input: /** @type {HTMLTextAreaElement} */ (container.querySelector("textarea")),
+    output: /** @type {HTMLPreElement} */ (container.querySelector("pre")),
     transform,
     copy,
   };
 }
 
+/**
+ * @typedef {object} TransformCase
+ * @property {string} name Behavior described by the test.
+ * @property {string} input Text entered in the textarea.
+ * @property {string} expected Full displayed output, including warnings and labels.
+ */
+
+/** @type {Record<string, TransformCase[]>} */
 const cases = {
   "links-to-domains": [
     {
@@ -180,9 +195,10 @@ describe("Filters Toolkit", () => {
       it("copies only the latest result and restores the current input", async (context) => {
         const window = await loadPage(context, "FiltersToolkit");
         const tool = controls(window, id);
+        /** @type {string[]} */
         const copied = [];
         // jsdom has no system clipboard. Inspect the real selection at copy time.
-        window.document.execCommand = context.mock.fn((command) => {
+        window.document.execCommand = context.mock.fn((/** @type {string} */ command) => {
           assert.equal(command, "copy");
           assert.equal(tool.input.selectionStart, 0);
           assert.equal(tool.input.selectionEnd, tool.input.value.length);
@@ -198,7 +214,7 @@ describe("Filters Toolkit", () => {
           assert.equal(tool.input.value, "new, untransformed input");
           assert.equal(tool.output.textContent, example.expected);
         }
-        assert.equal(window.document.execCommand.mock.callCount(), 3);
+        assert.equal(/** @type {CopyCommandMock} */ (window.document.execCommand).mock.callCount(), 3);
       });
     });
   }
@@ -219,7 +235,7 @@ describe("Filters Toolkit", () => {
       return true;
     });
     links.copy.click();
-    assert.equal(window.document.execCommand.mock.callCount(), 1);
+    assert.equal(/** @type {CopyCommandMock} */ (window.document.execCommand).mock.callCount(), 1);
   });
 
   it("renders input and warnings as text without inserting HTML", async (context) => {

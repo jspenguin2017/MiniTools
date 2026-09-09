@@ -1,12 +1,15 @@
 import { createTextTransform } from "./text-transform.js";
 
-const textTransform = createTextTransform(document.getElementById("unmerge-domains"));
+const textTransform = createTextTransform(/** @type {HTMLElement} */ (document.getElementById("unmerge-domains")));
 
 // TODO: Quadratic running time, can this be optimized?
 textTransform.transformButton.addEventListener("click", () => {
+  /** @type {string[]} */
   const out = [];
+  /** @type {string[]} */
   const warn = [];
   let count = 0;
+  /** @type {string[] | null} Null until the first nonblank line supplies the entries to subtract from. */
   let arr = null;
   for (let line of textTransform.getLines()) {
     line = line.trim();
@@ -33,7 +36,8 @@ textTransform.transformButton.addEventListener("click", () => {
     warn.push("Only one array found!");
   }
   if (count > 0) {
-    for (const d of arr) out.push(d);
+    // A nonzero count means the first array has been read.
+    for (const d of /** @type {string[]} */ (arr)) out.push(d);
   }
   textTransform.setOutput(out.sort().join(","), warn);
 });

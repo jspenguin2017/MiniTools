@@ -2,27 +2,43 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { loadPage } from "./helpers/load-page.js";
 
+/**
+ * Load the analyzer and expose its controls and interactions.
+ * @param {import("node:test").TestContext} context Test context that owns the page's lifetime.
+ */
 async function analyzer(context) {
   const window = await loadPage(context, "JavaScriptAnalyzer");
-  const container = window.document.getElementById("unhex");
-  const input = container.querySelector("textarea");
+  const container = /** @type {HTMLElement} */ (window.document.getElementById("unhex"));
+  const input = /** @type {HTMLTextAreaElement} */ (container.querySelector("textarea"));
   const [indexInput, valueInput] = container.querySelectorAll("input");
   const [parseButton, indexButton, valueButton] = container.querySelectorAll("button");
-  const output = container.querySelector("pre");
+  const output = /** @type {HTMLPreElement} */ (container.querySelector("pre"));
   return {
     window,
     input,
     output,
+    /**
+     * @param {string} source Array literal to enter and parse.
+     * @returns {string} Status text after clicking Parse.
+     */
     parse(source) {
       input.value = source;
       parseButton.click();
       return output.textContent;
     },
+    /**
+     * @param {string} value Substring to search for in string entries.
+     * @returns {string} Matching entries or status text.
+     */
     findIndex(value) {
       indexInput.value = value;
       indexButton.click();
       return output.textContent;
     },
+    /**
+     * @param {string} index Index text, including malformed input used to test validation.
+     * @returns {string} Entry text or validation message.
+     */
     findValue(index) {
       valueInput.value = index;
       valueButton.click();

@@ -2,8 +2,12 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { parseArray } from "../docs/JavaScriptAnalyzer/parse-array.js";
 
+/** @typedef {import("../docs/JavaScriptAnalyzer/parse-array.js").ArrayLiteralValue} ArrayLiteralValue */
+/** @typedef {import("../docs/JavaScriptAnalyzer/parse-array.js").ArrayLiteralObject} ArrayLiteralObject */
+/** @typedef {[name: string, source: string, expected: ArrayLiteralValue[]]} ParseCase */
+
 describe("array literal parser", () => {
-  for (const [name, source, expected] of [
+  for (const [name, source, expected] of /** @type {ParseCase[]} */ ([
     ["empty arrays", "[]", []],
     [
       "nested arrays and objects",
@@ -49,14 +53,16 @@ describe("array literal parser", () => {
       [{ "a": 1, "$key": 2, "_key": 3, "café": 4, "16": 5, "1.5": 6, "": 7, "true": 8 }],
     ],
     ["duplicate object keys", "[{a: 1, a: 2}]", [{ a: 2 }]],
-  ]) {
+  ])) {
     it(`parses ${name}`, () => {
       assert.deepEqual(parseArray(source), expected);
     });
   }
 
   it("treats prototype-related keys as data", () => {
-    const [value] = parseArray('[{"__proto__": {"polluted": true}, "constructor": 1, "toString": 2}]');
+    const [value] = /** @type {ArrayLiteralObject[]} */ (
+      parseArray('[{"__proto__": {"polluted": true}, "constructor": 1, "toString": 2}]')
+    );
     assert.equal(Object.getPrototypeOf(value), Object.prototype);
     assert.equal(Object.hasOwn(value, "__proto__"), true);
     assert.deepEqual(value.__proto__, { polluted: true });

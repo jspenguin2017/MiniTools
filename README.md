@@ -14,6 +14,9 @@ Use the Node.js version specified in `package.json`, then run `npm ci` to instal
   `docs/`.
 - `npm run format` formats the repository with Prettier.
 
+JavaScript uses JSDoc annotations for IDE type inference. Development dependencies include Node.js and jsdom type
+definitions so editors can also resolve the test helpers and browser controls they expose.
+
 Tests use Node's built-in test runner and jsdom to load the actual HTML and JavaScript, click controls, and check the
 results. The test runner uses Node's experimental VM modules to execute browser modules in isolated jsdom windows.
 Clipboard copying is simulated because jsdom has no system clipboard. Array literal parsing and rejection of executable

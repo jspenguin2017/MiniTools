@@ -2,13 +2,15 @@ import { parseArray } from "./parse-array.js";
 
 // UnHex
 // Test data: ['\x6c\x6f\x67', '\x74\x65\x73\x74\x31\x32\x33', '\x74\x65\x73\x74\x33\x32\x31']
-const $container = document.getElementById("unhex");
-const $input = $container.querySelector(":scope > textarea");
+const $container = /** @type {HTMLElement} */ (document.getElementById("unhex"));
+const $input = /** @type {HTMLTextAreaElement} */ ($container.querySelector(":scope > textarea"));
 const [$findIndexInput, $findValueInput] = $container.querySelectorAll("input");
-const $output = $container.querySelector(":scope > pre");
+const $output = /** @type {HTMLPreElement} */ ($container.querySelector(":scope > pre"));
 const [$parseButton, $findIndexButton, $findValueButton] = $container.querySelectorAll("button");
 
+/** @type {import("./parse-array.js").ArrayLiteralValue[]} Data from the last successful parse. */
 let unHexData = [];
+/** @returns {void} Parse the input as data and display its JSON representation. */
 const handleParse = () => {
   unHexData = [];
   try {
@@ -22,6 +24,7 @@ const handleParse = () => {
 };
 $parseButton.addEventListener("click", handleParse);
 
+/** @returns {void} Display indices and values of string entries containing the query. */
 const handleFindIndex = () => {
   if (unHexData.length === 0) {
     $output.textContent = "Nothing parsed.";
@@ -41,6 +44,7 @@ const handleFindIndex = () => {
 };
 $findIndexButton.addEventListener("click", handleFindIndex);
 
+/** @returns {void} Display the entry at the requested index, allowing negative indices. */
 const handleFindValue = () => {
   if (unHexData.length === 0) {
     $output.textContent = "Nothing parsed.";
@@ -58,6 +62,7 @@ const handleFindValue = () => {
     $output.textContent = "Index out of range.";
     return;
   }
-  $output.textContent = unHexData[i];
+  // The DOM setter accepts data values, converting nullish values to empty text and others to strings.
+  /** @type {{ textContent: import("./parse-array.js").ArrayLiteralValue }} */ ($output).textContent = unHexData[i];
 };
 $findValueButton.addEventListener("click", handleFindValue);
