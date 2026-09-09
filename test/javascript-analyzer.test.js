@@ -1,13 +1,12 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, vi } from "vitest";
 import { loadPage } from "./helpers/load-page.js";
 
 /**
  * Load the analyzer and expose its controls and interactions.
- * @param {import("node:test").TestContext} context Test context that owns the page's lifetime.
  */
-async function analyzer(context) {
-  const window = await loadPage(context, "JavaScriptAnalyzer");
+async function analyzer() {
+  const window = await loadPage("JavaScriptAnalyzer");
   const container = /** @type {HTMLElement} */ (window.document.getElementById("unhex"));
   const input = /** @type {HTMLTextAreaElement} */ (container.querySelector("textarea"));
   const [indexInput, valueInput] = container.querySelectorAll("input");
@@ -49,8 +48,8 @@ async function analyzer(context) {
 
 describe("JavaScript Analyzer", () => {
   describe("parse", () => {
-    it("decodes hexadecimal strings and rewrites the input as JSON", async (context) => {
-      const tool = await analyzer(context);
+    it("decodes hexadecimal strings and rewrites the input as JSON", async () => {
+      const tool = await analyzer();
       assert.equal(tool.output.textContent, "");
       assert.equal(
         tool.parse(String.raw`['\x6c\x6f\x67', '\x74\x65\x73\x74\x31\x32\x33', '\x74\x65\x73\x74\x33\x32\x31']`),
@@ -61,14 +60,14 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findValue("0"), "log");
     });
 
-    it("accepts ordinary arrays with strings and non-string entries", async (context) => {
-      const tool = await analyzer(context);
+    it("accepts ordinary arrays with strings and non-string entries", async () => {
+      const tool = await analyzer();
       assert.equal(tool.parse('["text", 42, true, null, {"a": 1}, ["nested"]]'), "Input successfully parsed.");
       assert.equal(tool.input.value, '["text",42,true,null,{"a":1},["nested"]]');
     });
 
-    it("preserves literal values and empty slots when searching normalized input", async (context) => {
-      const tool = await analyzer(context);
+    it("preserves literal values and empty slots when searching normalized input", async () => {
+      const tool = await analyzer();
       assert.equal(
         tool.parse("/* data */ [undefined,, NaN, Infinity, -0x10, {key: 'value'}, 'last',];"),
         "Input successfully parsed.",
@@ -81,9 +80,9 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findValue("-1"), "last");
     });
 
-    it("rejects executable input without running it and clears previous data", async (context) => {
-      const tool = await analyzer(context);
-      context.mock.method(tool.window.console, "log", () => {});
+    it("rejects executable input without running it and clears previous data", async () => {
+      const tool = await analyzer();
+      vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
       for (const source of [
         "[]; window.injected = true",
         "[window.injected = true]",
@@ -100,8 +99,8 @@ describe("JavaScript Analyzer", () => {
       }
     });
 
-    it("accepts an empty array and reports nothing parsed when searching it", async (context) => {
-      const tool = await analyzer(context);
+    it("accepts an empty array and reports nothing parsed when searching it", async () => {
+      const tool = await analyzer();
       assert.equal(tool.parse("[]"), "Input successfully parsed.");
       assert.equal(tool.input.value, "[]");
       assert.equal(tool.findIndex("anything"), "Nothing parsed.");
@@ -109,20 +108,20 @@ describe("JavaScript Analyzer", () => {
     });
 
     for (const source of ["", "['unterminated]"]) {
-      it(`reports ${source ? "malformed array syntax" : "empty input"} without overwriting the input`, async (context) => {
-        const tool = await analyzer(context);
-        const log = context.mock.method(tool.window.console, "log", () => {});
+      it(`reports ${source ? "malformed array syntax" : "empty input"} without overwriting the input`, async () => {
+        const tool = await analyzer();
+        const log = vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
         assert.equal(tool.parse(source), "Could not parse input.");
         assert.equal(tool.input.value, source);
-        assert.equal(log.mock.callCount(), 1);
-        assert.equal(log.mock.calls[0].arguments[0].name, "SyntaxError");
+        assert.equal(log.mock.calls.length, 1);
+        assert.equal(log.mock.calls[0][0].name, "SyntaxError");
         assert.equal(tool.findIndex("anything"), "Nothing parsed.");
         assert.equal(tool.findValue("0"), "Nothing parsed.");
       });
     }
 
-    it("replaces previous data when parsing again", async (context) => {
-      const tool = await analyzer(context);
+    it("replaces previous data when parsing again", async () => {
+      const tool = await analyzer();
       tool.parse('["old", "stale"]');
       tool.parse('["new"]');
       assert.equal(tool.findIndex("old"), "");
@@ -132,9 +131,9 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findValue("0"), "Nothing parsed.");
     });
 
-    it("clears previous data after a parse failure and recovers on the next valid parse", async (context) => {
-      const tool = await analyzer(context);
-      context.mock.method(tool.window.console, "log", () => {});
+    it("clears previous data after a parse failure and recovers on the next valid parse", async () => {
+      const tool = await analyzer();
+      vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
       tool.parse('["old"]');
       assert.equal(tool.parse("["), "Could not parse input.");
       assert.equal(tool.findIndex("old"), "Nothing parsed.");
@@ -143,16 +142,16 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findValue("0"), "recovered");
     });
 
-    it("uses the parsed data until Parse is clicked again", async (context) => {
-      const tool = await analyzer(context);
+    it("uses the parsed data until Parse is clicked again", async () => {
+      const tool = await analyzer();
       tool.parse('["original"]');
       tool.input.value = '["edited"]';
       assert.equal(tool.findIndex("original"), "0:original");
       assert.equal(tool.findValue("0"), "original");
     });
 
-    it("keeps sparse nonempty arrays searchable and replaces them with a truly empty array", async (context) => {
-      const tool = await analyzer(context);
+    it("keeps sparse nonempty arrays searchable and replaces them with a truly empty array", async () => {
+      const tool = await analyzer();
       assert.equal(tool.parse("[,,]"), "Input successfully parsed.");
       assert.equal(tool.input.value, "[null,null]");
       assert.equal(tool.findIndex(""), "");
@@ -165,8 +164,8 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findValue("-1"), "Nothing parsed.");
     });
 
-    it("round-trips decoded strings through the displayed JSON on a second parse", async (context) => {
-      const tool = await analyzer(context);
+    it("round-trips decoded strings through the displayed JSON on a second parse", async () => {
+      const tool = await analyzer();
       const source = String.raw`['\x00\n\t\uD800', '\u{1F600}', '\\x41', '\"']`;
       const values = ["\0\n\t\ud800", "\u{1f600}", "\\x41", '"'];
       assert.equal(tool.parse(source), "Input successfully parsed.");
@@ -185,27 +184,27 @@ describe("JavaScript Analyzer", () => {
   });
 
   describe("find index", () => {
-    it("reports nothing parsed before the first parse", async (context) => {
-      const tool = await analyzer(context);
+    it("reports nothing parsed before the first parse", async () => {
+      const tool = await analyzer();
       assert.equal(tool.findIndex("anything"), "Nothing parsed.");
     });
 
-    it("finds substrings in every string entry and skips non-string entries", async (context) => {
-      const tool = await analyzer(context);
+    it("finds substrings in every string entry and skips non-string entries", async () => {
+      const tool = await analyzer();
       tool.parse('[42, "test123", null, true, {"text":"test"}, ["test"], "test321", "other", "test123"]');
       assert.equal(tool.findIndex("test"), "1:test123\n6:test321\n8:test123");
       assert.equal(tool.findIndex("123"), "1:test123\n8:test123");
       assert.equal(tool.findIndex("other"), "7:other");
     });
 
-    it("returns every string, including empty strings, for an empty query", async (context) => {
-      const tool = await analyzer(context);
+    it("returns every string, including empty strings, for an empty query", async () => {
+      const tool = await analyzer();
       tool.parse('["", 12, "alpha", null, "beta"]');
       assert.equal(tool.findIndex(""), "0:\n2:alpha\n4:beta");
     });
 
-    it("uses case-sensitive literal matching and clears previous results when there is no match", async (context) => {
-      const tool = await analyzer(context);
+    it("uses case-sensitive literal matching and clears previous results when there is no match", async () => {
+      const tool = await analyzer();
       tool.parse('["Alpha", "alpha", "a.b", "axb"]');
       assert.equal(tool.findIndex("Alpha"), "0:Alpha");
       assert.equal(tool.findIndex("a.b"), "2:a.b");
@@ -213,14 +212,14 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findIndex("missing"), "");
     });
 
-    it("returns no matches for an array containing only non-string entries", async (context) => {
-      const tool = await analyzer(context);
+    it("returns no matches for an array containing only non-string entries", async () => {
+      const tool = await analyzer();
       tool.parse('[42, null, false, {}, ["nested"]]');
       assert.equal(tool.findIndex(""), "");
     });
 
-    it("preserves search whitespace and matches decoded Unicode literally", async (context) => {
-      const tool = await analyzer(context);
+    it("preserves search whitespace and matches decoded Unicode literally", async () => {
+      const tool = await analyzer();
       tool.parse(String.raw`['\u00e9', 'e\u0301', '\u{1F600}', ' padded ', 'padded']`);
       assert.equal(tool.findIndex("\u00e9"), "0:\u00e9");
       assert.equal(tool.findIndex("e\u0301"), "1:e\u0301");
@@ -232,8 +231,8 @@ describe("JavaScript Analyzer", () => {
   });
 
   describe("find value", () => {
-    it("reports nothing parsed before validating the index", async (context) => {
-      const tool = await analyzer(context);
+    it("reports nothing parsed before validating the index", async () => {
+      const tool = await analyzer();
       assert.equal(tool.findValue("0"), "Nothing parsed.");
       assert.equal(tool.findValue("invalid"), "Nothing parsed.");
     });
@@ -252,31 +251,31 @@ describe("JavaScript Analyzer", () => {
       ["1.9", "middle"],
       ["1suffix", "middle"],
     ]) {
-      it(`looks up ${JSON.stringify(index)} using the current parseInt behavior`, async (context) => {
-        const tool = await analyzer(context);
+      it(`looks up ${JSON.stringify(index)} using the current parseInt behavior`, async () => {
+        const tool = await analyzer();
         tool.parse('["first", "middle", "last"]');
         assert.equal(tool.findValue(index), expected);
       });
     }
 
     for (const index of ["", " ", "abc", "NaN", "Infinity", "-Infinity", "+", "-", "0x", "\uff11", "9".repeat(400)]) {
-      it(`rejects ${index.length > 20 ? "an overflowing integer" : JSON.stringify(index)} as an invalid integer`, async (context) => {
-        const tool = await analyzer(context);
+      it(`rejects ${index.length > 20 ? "an overflowing integer" : JSON.stringify(index)} as an invalid integer`, async () => {
+        const tool = await analyzer();
         tool.parse('["first"]');
         assert.equal(tool.findValue(index), "Index not valid integer.");
       });
     }
 
     for (const index of ["3", "100", "-4", "-100", "9007199254740992", "-9007199254740992"]) {
-      it(`rejects out-of-range index ${index}`, async (context) => {
-        const tool = await analyzer(context);
+      it(`rejects out-of-range index ${index}`, async () => {
+        const tool = await analyzer();
         tool.parse('["first", "middle", "last"]');
         assert.equal(tool.findValue(index), "Index out of range.");
       });
     }
 
-    it("displays string and non-string values using DOM text conversion", async (context) => {
-      const tool = await analyzer(context);
+    it("displays string and non-string values using DOM text conversion", async () => {
+      const tool = await analyzer();
       tool.parse('["", 42, false, null, {"a":1}, ["a","b"]]');
       for (const [index, expected] of ["", "42", "false", "", "[object Object]", "a,b"].entries()) {
         assert.equal(tool.findValue(String(index)), expected);
@@ -290,8 +289,8 @@ describe("JavaScript Analyzer", () => {
       '[{"toString":false}]',
       '[[{"toString":[]}],"tail"]',
     ]) {
-      it(`displays ${source} as JSON when it cannot be converted to text`, async (context) => {
-        const tool = await analyzer(context);
+      it(`displays ${source} as JSON when it cannot be converted to text`, async () => {
+        const tool = await analyzer();
         assert.equal(tool.parse(`[${source},"searchable"]`), "Input successfully parsed.");
         assert.equal(tool.findValue("0"), source);
         assert.equal(tool.output.children.length, 0);
@@ -301,8 +300,8 @@ describe("JavaScript Analyzer", () => {
       });
     }
 
-    it("replaces errors with a successful result on the next search", async (context) => {
-      const tool = await analyzer(context);
+    it("replaces errors with a successful result on the next search", async () => {
+      const tool = await analyzer();
       tool.parse('["value"]');
       assert.equal(tool.findValue("bad"), "Index not valid integer.");
       assert.equal(tool.findValue("0"), "value");
@@ -311,8 +310,8 @@ describe("JavaScript Analyzer", () => {
     });
   });
 
-  it("displays matching strings as text without interpreting HTML", async (context) => {
-    const tool = await analyzer(context);
+  it("displays matching strings as text without interpreting HTML", async () => {
+    const tool = await analyzer();
     tool.parse('["<b>hello</b>"]');
     assert.equal(tool.findIndex("hello"), "0:<b>hello</b>");
     assert.equal(tool.output.children.length, 0);

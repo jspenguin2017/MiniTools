@@ -1,65 +1,29 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { SourceTextModule } from "node:vm";
-import { JSDOM, VirtualConsole } from "jsdom";
+import { fileURLToPath } from "node:url";
+import { onTestFinished, vi } from "vitest";
 
 /**
- * Load the real markup and modules in an isolated window, closed after the test.
- * Give modules their real filenames so Node attributes coverage to docs/.
- * @param {import("node:test").TestContext} context Test context that owns cleanup and error assertions.
+ * Load the real markup in Vitest's jsdom window and import its modules through Vitest.
+ * Reset the document and module cache so each test gets fresh controls and module state.
  * @param {"FiltersToolkit" | "JavaScriptAnalyzer"} name Page directory under docs/.
- * @returns {Promise<import("jsdom").DOMWindow>} Window after its load event and module evaluation.
+ * @returns {Promise<Window & typeof globalThis>} Window after the page's modules have initialized.
  */
-export async function loadPage(context, name) {
-  const filename = path.resolve(import.meta.dirname, "../../docs", name, "index.html");
-  /** @type {Error[]} */
-  const errors = [];
-  const virtualConsole = new VirtualConsole();
-  virtualConsole.on("jsdomError", (error) => errors.push(error));
-  const dom = new JSDOM(readFileSync(filename, "utf8"), {
-    url: pathToFileURL(filename).href,
-    runScripts: "outside-only",
-    virtualConsole,
-  });
-  context.after(() => {
-    dom.window.close();
-    assert.deepEqual(errors, [], "Page events must not throw unhandled errors");
+export async function loadPage(name) {
+  const pageURL = new URL(`../../docs/${name}/index.html`, import.meta.url);
+  vi.resetModules();
+  const { default: html } = await import(`../../docs/${name}/index.html?raw`);
+  const page = new DOMParser().parseFromString(html, "text/html");
+  document.replaceChild(document.importNode(page.documentElement, true), document.documentElement);
+  onTestFinished(() => {
+    document.head.replaceChildren();
+    document.body.replaceChildren();
   });
 
-  /** @type {Promise<Event>} */
-  const loaded = new Promise((resolve) => dom.window.addEventListener("load", resolve, { once: true }));
-  /** @type {Map<string, SourceTextModule>} */
-  const modules = new Map();
-  /**
-   * @param {string} moduleFilename Absolute path used as the module identifier and cache key.
-   * @returns {SourceTextModule} Cached or newly compiled module in this page's VM context.
-   */
-  const loadModule = (moduleFilename) => {
-    if (!modules.has(moduleFilename)) {
-      modules.set(
-        moduleFilename,
-        new SourceTextModule(readFileSync(moduleFilename, "utf8"), {
-          identifier: moduleFilename,
-          context: dom.getInternalVMContext(),
-        }),
-      );
-    }
-    return /** @type {SourceTextModule} */ (modules.get(moduleFilename));
-  };
-  for (const element of /** @type {NodeListOf<HTMLScriptElement>} */ (
-    dom.window.document.querySelectorAll("script[src]")
-  )) {
+  // jsdom does not execute module scripts; let Vitest load and track them for coverage
+  for (const element of /** @type {NodeListOf<HTMLScriptElement>} */ (document.querySelectorAll("script[src]"))) {
     assert.equal(element.type, "module");
-    const module = loadModule(fileURLToPath(element.src));
-    if (module.status === "unlinked") {
-      await module.link((specifier, referencingModule) =>
-        loadModule(fileURLToPath(new URL(specifier, pathToFileURL(referencingModule.identifier)))),
-      );
-    }
-    await module.evaluate();
+    const moduleFilename = fileURLToPath(new URL(element.getAttribute("src"), pageURL));
+    await import(moduleFilename);
   }
-  await loaded;
-  return dom.window;
+  return window;
 }

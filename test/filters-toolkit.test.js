@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, vi } from "vitest";
 import { loadPage } from "./helpers/load-page.js";
 
 /**
  * Find the controls for one Filters Toolkit container.
- * @param {import("jsdom").DOMWindow} window Loaded test window.
+ * @param {Window & typeof globalThis} window Loaded test window.
  * @param {string} id Tool container ID in the page markup.
  */
 function controls(window, id) {
@@ -211,8 +211,8 @@ describe("Filters Toolkit", () => {
   for (const [id, examples] of Object.entries(cases)) {
     describe(id, () => {
       for (const { name, input, expected } of examples) {
-        it(name, async (context) => {
-          const window = await loadPage(context, "FiltersToolkit");
+        it(name, async () => {
+          const window = await loadPage("FiltersToolkit");
           const tool = controls(window, id);
           tool.input.value = input;
           tool.transform.click();
@@ -223,8 +223,8 @@ describe("Filters Toolkit", () => {
       }
 
       for (const input of ["", " \n\t\n"]) {
-        it(`handles ${input ? "whitespace-only" : "empty"} input`, async (context) => {
-          const window = await loadPage(context, "FiltersToolkit");
+        it(`handles ${input ? "whitespace-only" : "empty"} input`, async () => {
+          const window = await loadPage("FiltersToolkit");
           const tool = controls(window, id);
           tool.input.value = input;
           tool.transform.click();
@@ -233,25 +233,23 @@ describe("Filters Toolkit", () => {
         });
       }
 
-      it("starts with a hidden copy button and no output", async (context) => {
-        const window = await loadPage(context, "FiltersToolkit");
+      it("starts with a hidden copy button and no output", async () => {
+        const window = await loadPage("FiltersToolkit");
         const tool = controls(window, id);
         assert.equal(tool.output.textContent, "");
         assert.equal(tool.copy.classList.contains("hidden"), true);
       });
 
-      it("copies only the latest result and preserves the current input and selection", async (context) => {
-        const window = await loadPage(context, "FiltersToolkit");
+      it("copies only the latest result and preserves the current input and selection", async () => {
+        const window = await loadPage("FiltersToolkit");
         const tool = controls(window, id);
         /** @type {string[]} */
         const inputsDuringCopy = [];
         // jsdom has no system clipboard. Capture text passed to the Clipboard API.
-        const writeText = context.mock.fn(async (/** @type {string} */ _text) => {
+        const writeText = vi.fn(async (/** @type {string} */ _text) => {
           inputsDuringCopy.push(tool.input.value);
         });
-        Object.defineProperty(window.navigator, "clipboard", {
-          value: { writeText },
-        });
+        vi.stubGlobal("navigator", { clipboard: { writeText } });
         for (const example of [examples[0], examples[examples.length - 1], { input: "", expected: "Output:\n" }]) {
           tool.input.value = example.input;
           tool.transform.click();
@@ -261,9 +259,9 @@ describe("Filters Toolkit", () => {
           tool.copy.click();
           const call = writeText.mock.calls.at(-1);
           assert.ok(call);
-          await call.result;
-          assert.equal(call.arguments.length, 1);
-          assert.equal(call.arguments[0], example.expected.split("Output:\n")[1]);
+          await writeText.mock.results.at(-1).value;
+          assert.equal(call.length, 1);
+          assert.equal(call[0], example.expected.split("Output:\n")[1]);
           assert.equal(inputsDuringCopy.at(-1), "new, untransformed input");
           assert.equal(tool.input.value, "new, untransformed input");
           assert.equal(window.document.activeElement, tool.input);
@@ -272,11 +270,11 @@ describe("Filters Toolkit", () => {
           assert.equal(tool.input.selectionDirection, "backward");
           assert.equal(tool.output.textContent, example.expected);
         }
-        assert.equal(writeText.mock.callCount(), 3);
+        assert.equal(writeText.mock.calls.length, 3);
       });
 
-      it("recomputes output and warnings when transforming repeatedly", async (context) => {
-        const window = await loadPage(context, "FiltersToolkit");
+      it("recomputes output and warnings when transforming repeatedly", async () => {
+        const window = await loadPage("FiltersToolkit");
         const tool = controls(window, id);
         const warning = examples.find((example) => example.expected.startsWith("Warnings:"));
         for (const example of [
@@ -294,13 +292,11 @@ describe("Filters Toolkit", () => {
     });
   }
 
-  it("keeps transforms and their copy buffers independent", async (context) => {
-    const window = await loadPage(context, "FiltersToolkit");
+  it("keeps transforms and their copy buffers independent", async () => {
+    const window = await loadPage("FiltersToolkit");
     const tools = Object.entries(cases).map(([id, examples]) => ({ ...controls(window, id), example: examples[0] }));
-    const writeText = context.mock.fn(async (/** @type {string} */ _text) => {});
-    Object.defineProperty(window.navigator, "clipboard", {
-      value: { writeText },
-    });
+    const writeText = vi.fn(async (/** @type {string} */ _text) => {});
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
     for (const tool of tools) {
       tool.input.value = tool.example.input;
       tool.transform.click();
@@ -309,19 +305,19 @@ describe("Filters Toolkit", () => {
       tool.copy.click();
       const call = writeText.mock.calls.at(-1);
       assert.ok(call);
-      await call.result;
-      assert.equal(call.arguments.length, 1);
-      assert.equal(call.arguments[0], tool.example.expected.slice("Output:\n".length));
+      await writeText.mock.results.at(-1).value;
+      assert.equal(call.length, 1);
+      assert.equal(call[0], tool.example.expected.slice("Output:\n".length));
       for (const other of tools) {
         assert.equal(other.output.textContent, other.example.expected);
         assert.equal(other.input.value, other.example.input.replace(/\r\n?/g, "\n"));
       }
     }
-    assert.equal(writeText.mock.callCount(), tools.length);
+    assert.equal(writeText.mock.calls.length, tools.length);
   });
 
-  it("preserves the complete ASCII range after textarea newline normalization", async (context) => {
-    const window = await loadPage(context, "FiltersToolkit");
+  it("preserves the complete ASCII range after textarea newline normalization", async () => {
+    const window = await loadPage("FiltersToolkit");
     const tool = controls(window, "unicode-escape");
     const ascii = String.fromCharCode(...Array.from({ length: 128 }, (_, index) => index));
     tool.input.value = ascii;
@@ -329,8 +325,8 @@ describe("Filters Toolkit", () => {
     assert.equal(tool.output.textContent, "Output:\n" + ascii.replace(/\r/g, "\n"));
   });
 
-  it("renders input and warnings as text without inserting HTML", async (context) => {
-    const window = await loadPage(context, "FiltersToolkit");
+  it("renders input and warnings as text without inserting HTML", async () => {
+    const window = await loadPage("FiltersToolkit");
     const links = controls(window, "links-to-domains");
     const unicode = controls(window, "unicode-escape");
     links.input.value = "<b>missing link</b>";

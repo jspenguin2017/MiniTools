@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import { parseArray } from "../docs/JavaScriptAnalyzer/parse-array.js";
 
 /** @typedef {import("../docs/JavaScriptAnalyzer/parse-array.js").ArrayLiteralValue} ArrayLiteralValue */

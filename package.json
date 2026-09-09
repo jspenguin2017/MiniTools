@@ -22,8 +22,10 @@
   "devDependencies": {
     "@types/jsdom": "30.0.0",
     "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "4.1.11",
     "jsdom": "30.0.1",
-    "prettier": "3.9.6"
+    "prettier": "3.9.6",
+    "vitest": "4.1.11"
   },
   "engines": {
     "node": "24.20.0"
@@ -31,6 +33,7 @@
   "private": true,
   "scripts": {
     "format": "prettier . --write",
-    "test": "node --experimental-vm-modules --test --experimental-test-coverage --test-coverage-include=\"docs/**/*.js\" --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \"test/**/*.test.js\""
+    "test": "vitest run --coverage",
+    "test:watch": "vitest --watch"
   }
 }

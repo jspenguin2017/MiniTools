@@ -47,4 +47,6 @@ python3 -m http.server 8000 --directory docs
 Open [localhost:8000](http://localhost:8000/). Edit the files in `docs/` and refresh the browser to see changes. No
 build step is required.
 
-Run `npm test` to check your changes and `npm run format` to format the repository.
+Run `npm test` to run the Vitest suite with V8 coverage. Tests use jsdom for browser interactions and require 100% line,
+branch, function, and statement coverage for JavaScript in `docs/`. Open `coverage/index.html` for the detailed report.
+Use `npm run test:watch` to rerun tests as you edit, and `npm run format` to format the repository.
