@@ -2,8 +2,6 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { loadPage } from "./helpers/load-page.js";
 
-/** @typedef {import("node:test").Mock<Document["execCommand"]>} CopyCommandMock */
-
 /**
  * Find the controls for one Filters Toolkit container.
  * @param {import("jsdom").DOMWindow} window Loaded test window.
@@ -198,29 +196,33 @@ describe("Filters Toolkit", () => {
         assert.equal(tool.copy.classList.contains("hidden"), true);
       });
 
-      it("copies only the latest result and restores the current input", async (context) => {
+      it("copies only the latest result and preserves the current input and selection", async (context) => {
         const window = await loadPage(context, "FiltersToolkit");
         const tool = controls(window, id);
         /** @type {string[]} */
         const copied = [];
-        // jsdom has no system clipboard. Inspect the real selection at copy time.
-        window.document.execCommand = context.mock.fn((/** @type {string} */ command) => {
-          assert.equal(command, "copy");
-          assert.equal(tool.input.selectionStart, 0);
-          assert.equal(tool.input.selectionEnd, tool.input.value.length);
-          copied.push(tool.input.value);
-          return true;
+        // jsdom has no system clipboard. Capture text passed to the Clipboard API.
+        const writeText = context.mock.fn(async (/** @type {string} */ text) => {
+          assert.equal(tool.input.value, "new, untransformed input");
+          copied.push(text);
+        });
+        Object.defineProperty(window.navigator, "clipboard", {
+          value: { writeText },
         });
         for (const example of [examples[0], examples[examples.length - 1], { input: "", expected: "Output:\n" }]) {
           tool.input.value = example.input;
           tool.transform.click();
           tool.input.value = "new, untransformed input";
+          tool.input.setSelectionRange(2, 7, "backward");
           tool.copy.click();
           assert.equal(copied[copied.length - 1], example.expected.split("Output:\n")[1]);
           assert.equal(tool.input.value, "new, untransformed input");
+          assert.equal(tool.input.selectionStart, 2);
+          assert.equal(tool.input.selectionEnd, 7);
+          assert.equal(tool.input.selectionDirection, "backward");
           assert.equal(tool.output.textContent, example.expected);
         }
-        assert.equal(/** @type {CopyCommandMock} */ (window.document.execCommand).mock.callCount(), 3);
+        assert.equal(writeText.mock.callCount(), 3);
       });
     });
   }
@@ -235,13 +237,16 @@ describe("Filters Toolkit", () => {
     unicode.transform.click();
     assert.equal(links.output.textContent, "Output:\na.example");
     assert.equal(unicode.output.textContent, "Output:\n\\u00E9");
-    window.document.execCommand = context.mock.fn(() => {
-      assert.equal(links.input.value, "a.example");
+    const writeText = context.mock.fn(async (/** @type {string} */ text) => {
+      assert.equal(text, "a.example");
+      assert.equal(links.input.value, "https://a.example");
       assert.equal(unicode.input.value, "é");
-      return true;
+    });
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: { writeText },
     });
     links.copy.click();
-    assert.equal(/** @type {CopyCommandMock} */ (window.document.execCommand).mock.callCount(), 1);
+    assert.equal(writeText.mock.callCount(), 1);
   });
 
   it("renders input and warnings as text without inserting HTML", async (context) => {

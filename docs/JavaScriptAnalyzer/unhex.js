@@ -63,7 +63,7 @@ const handleFindValue = () => {
     $output.textContent = "Index out of range.";
     return;
   }
-  // The DOM setter accepts data values, converting nullish values to empty text and others to strings.
+  // The DOM setter accepts data values, converting nullish values to empty text and others to strings
   /** @type {{ textContent: import("./parse-array.js").ArrayLiteralValue }} */ ($output).textContent = unHexData[i];
 };
 

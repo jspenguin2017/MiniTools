@@ -5,7 +5,7 @@
  * @property {HTMLButtonElement} copyButton Button that copies the latest output.
  * @property {() => string[]} getLines Read the input as newline-separated lines.
  * @property {(text: string, warnings?: string[]) => void} setOutput Display output and optional warnings.
- * @property {() => void} copyOutput Copy only the output, preserving the current input.
+ * @property {() => Promise<void>} copyOutput Copy only the output, preserving the current input.
  */
 
 /**
@@ -23,7 +23,9 @@ export const createTextTransform = ($container) => {
   return {
     transformButton: $transform,
     copyButton: $copy,
-    getLines: () => $input.value.split("\n"),
+    getLines: () => {
+      return $input.value.split("\n");
+    },
     setOutput: (text, warnings = []) => {
       /** @type {string[]} */
       const result = [];
@@ -39,12 +41,8 @@ export const createTextTransform = ($container) => {
       $output.textContent = result.join("\n");
       $copy.classList.remove("hidden");
     },
-    copyOutput: () => {
-      const old = $input.value;
-      $input.value = output;
-      $input.select();
-      $input.ownerDocument.execCommand("copy");
-      $input.value = old;
+    copyOutput: async () => {
+      await navigator.clipboard.writeText(output);
     },
   };
 };

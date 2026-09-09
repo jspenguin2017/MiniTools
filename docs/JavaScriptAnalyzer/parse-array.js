@@ -155,7 +155,7 @@ class ArrayLiteralTokenizer {
     if (escape === "x" || escape === "u") {
       return this.readHexEscape(escape === "x" ? 2 : 4);
     }
-    // Legacy octal and decimal escapes are invalid in strict JavaScript.
+    // Legacy octal and decimal escapes are invalid in strict JavaScript
     if (isDigit(escape, 10) && (escape !== "0" || isDigit(this.source.charAt(this.index), 10))) {
       invalid(this.index - 1);
     }
@@ -328,7 +328,7 @@ class ArrayLiteralParser {
       }
       this.token = this.tokenizer.next();
       this.expect(":");
-      // Define data properties directly, including keys such as __proto__.
+      // Define data properties directly, including keys such as __proto__
       Object.defineProperty(value, key.value, {
         value: this.readValue(),
         writable: true,
