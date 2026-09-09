@@ -2,13 +2,13 @@ import { createTextTransform } from "./text-transform.js";
 
 const textTransform = createTextTransform(/** @type {HTMLElement} */ (document.getElementById("links-to-domains")));
 
-const reDomainDuplicate = /https?:.*?https?:/;
+const DOMAIN_DUPLICATE_PATTERN = /https?:.*?https?:/;
 
 // There can be extra text before the link, so no start anchor
-const reDomainExtract = /https?:\/\/([^:/?#\s]+)/;
+const DOMAIN_EXTRACT_PATTERN = /https?:\/\/([^:/?#\s]+)/;
 
 // Keep at least two domain labels, preserving "www.com" and similar domains
-const reDomainCleanup = /^www?\d*?\.(?=[^.]+\.[^.]+)/;
+const DOMAIN_CLEANUP_PATTERN = /^www?\d*?\.(?=[^.]+\.[^.]+)/;
 
 textTransform.transformButton.addEventListener("click", () => {
   /** @type {string[]} */
@@ -20,15 +20,15 @@ textTransform.transformButton.addEventListener("click", () => {
     if (line.length === 0) {
       continue;
     }
-    if (reDomainDuplicate.test(line)) {
+    if (DOMAIN_DUPLICATE_PATTERN.test(line)) {
       warn.push('Two links (second one ignored) "' + line + '"');
     }
-    const dom = reDomainExtract.exec(line);
+    const dom = DOMAIN_EXTRACT_PATTERN.exec(line);
     if (dom === null) {
       warn.push('No link "' + line + '"');
       continue;
     }
-    out.push(dom[1].replace(reDomainCleanup, ""));
+    out.push(dom[1].replace(DOMAIN_CLEANUP_PATTERN, ""));
   }
   textTransform.setOutput(out.sort().join(","), warn);
 });
