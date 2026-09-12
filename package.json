@@ -1,6 +1,6 @@
 {
   "name": "mini-tools",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Browser-based tools for working with filter lists and analyzing JavaScript arrays.",
   "keywords": [
     "developer-tools",
@@ -25,7 +25,7 @@
     "@vitest/coverage-v8": "4.1.11",
     "jsdom": "30.0.1",
     "prettier": "3.9.6",
-    "vitest": "4.1.11"
+    "vitest": "5.0.0"
   },
   "engines": {
     "node": "24.21.0"
