@@ -1,27 +1,12 @@
 {
-  "name": "mini-tools",
-  "version": "1.0.2",
-  "description": "Browser-based tools for working with filter lists and analyzing JavaScript arrays.",
-  "keywords": [
-    "developer-tools",
-    "filters",
-    "javascript",
-    "unicode"
-  ],
-  "homepage": "https://jspenguin2017.github.io/MiniTools/",
+  "author": "Hugo Xu",
   "bugs": {
     "url": "https://github.com/jspenguin2017/MiniTools/issues"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jspenguin2017/MiniTools.git"
-  },
-  "license": "MIT",
-  "author": "Hugo Xu",
-  "type": "module",
+  "description": "Browser-based tools for working with filter lists and analyzing JavaScript arrays.",
   "devDependencies": {
     "@types/jsdom": "30.0.0",
-    "@types/node": "24.13.4",
+    "@types/node": "24.13.3",
     "@vitest/coverage-v8": "5.0.0",
     "jsdom": "30.0.1",
     "prettier": "3.9.6",
@@ -30,10 +15,25 @@
   "engines": {
     "node": "24.21.0"
   },
+  "homepage": "https://jspenguin2017.github.io/MiniTools/",
+  "keywords": [
+    "developer-tools",
+    "filters",
+    "javascript",
+    "unicode"
+  ],
+  "license": "MIT",
+  "name": "mini-tools",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jspenguin2017/MiniTools.git"
+  },
   "scripts": {
     "format": "prettier . --write",
     "test": "vitest run --coverage",
     "test:watch": "vitest --watch"
-  }
+  },
+  "type": "module",
+  "version": "1.0.2"
 }
