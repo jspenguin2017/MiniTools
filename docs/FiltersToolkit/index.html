@@ -46,9 +46,9 @@
 
     <div class="container" id="unmerge-domains">
       <h2>Text Transform: Unmerge Comma-Separated Domain Array</h2>
-      <p>From the first line, remove domains that are contained in other lines.</p>
-      <p>If the first line contains duplicate entries, the first duplicate entry will be removed on each match.</p>
-      <p>The output array is not sorted.</p>
+      <p>From the first nonblank line, remove domains that are contained in subsequent lines.</p>
+      <p>Each match removes one occurrence of a domain. Any remaining duplicate entries are preserved.</p>
+      <p>The output array is sorted.</p>
       <p>Warnings will be generated for entries that are not matched.</p>
       <textarea placeholder="Paste here, one array per line..." spellcheck="false"></textarea>
       <br /><br />

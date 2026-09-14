@@ -14,8 +14,8 @@ Transform pasted text to help write and maintain filters:
   Duplicates are preserved, with warnings for missing or extra links.
 - **Merge domains:** Combine comma-separated domain lists, sort the result, and remove duplicate and invalid entries
   with warnings.
-- **Unmerge domains:** Remove domains listed on subsequent lines from the first line, removing one occurrence per match
-  and warning about unmatched entries.
+- **Unmerge domains:** Remove domains listed on subsequent lines from the first nonblank line, removing one occurrence
+  per match and warning about unmatched entries. Sort the result, preserving any remaining duplicates.
 - **Unicode escape:** Convert non-ASCII characters to Unicode escape sequences.
 
 Each transformation provides a **Copy Output** button to copy the result without warnings.
