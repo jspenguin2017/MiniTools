@@ -9,23 +9,6 @@ Production files were not modified.
 
 ## Findings
 
-### FT-1: Unmerge changes the surviving entries' order
-
-- **Severity:** Medium
-- **References:** `docs/FiltersToolkit/unmerge-domains.js:21–23,36–39`; documented contract at
-  `docs/FiltersToolkit/index.html:49–51`.
-- **Problem:** The implementation counts domains in a `Map`, then reconstructs and sorts the result. The page promises
-  an unsorted result and removal of the first occurrence on each match. Sorting loses the original order; removing only
-  the final `.sort()` would still group repeated domains and preserve their first insertion positions instead of the
-  positions of the surviving occurrences.
-- **Verified behavior:** Input `z.example,a.example,z.example,b.example\nz.example` produces
-  `a.example,b.example,z.example`. Removing the first `z.example` should leave `a.example,z.example,b.example`. Input
-  `z.example,b.example,a.example\nb.example` produces `a.example,z.example` instead of `z.example,a.example`.
-- **Impact:** Using Unmerge as the documented ordered subtraction operation reorders unrelated entries, introducing
-  unexpected changes when its output is pasted back into a filter list.
-- **Recommendation:** Preserve the first line as an ordered sequence and consume removal counts while traversing it from
-  left to right. Emit the surviving occurrences in their original order and do not sort the result.
-
 ### FT-2: Link extraction confuses URL authority text with the hostname
 
 - **Severity:** Medium
