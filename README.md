@@ -13,7 +13,9 @@ Transform pasted text to help write and maintain filters:
 - **Links to domains:** Extract the domain from the first link on each line and produce a sorted, comma-separated list.
   Duplicates are preserved, with warnings for missing or extra links.
 - **Merge domains:** Combine comma-separated domain lists, sort the result, and remove duplicate and invalid entries
-  with warnings.
+  with warnings. Accepts plain ASCII hostnames with at least two dot-separated labels (including Punycode names) and
+  IPv4 addresses. URLs, trailing dots, wildcards, and negation are not supported. Spelling and case are preserved;
+  duplicates are matched exactly after trimming.
 - **Unmerge domains:** Remove domains listed on subsequent lines from the first nonblank line, removing one occurrence
   per match and warning about unmatched entries. Sort the result, preserving any remaining duplicates.
 - **Unicode escape:** Convert non-ASCII characters to Unicode escape sequences.

@@ -1,5 +1,10 @@
 import { createTextTransform } from "./text-transform.js";
 
+// Email inputs validate ASCII hostname labels, including hyphens and label lengths.
+// URL parsing alone also accepts empty labels, underscores, and other invalid names.
+const domainValidator = document.createElement("input");
+domainValidator.type = "email";
+
 const textTransform = createTextTransform(/** @type {HTMLElement} */ (document.getElementById("merge-domains")));
 
 textTransform.transformButton.addEventListener("click", () => {
@@ -18,7 +23,8 @@ textTransform.transformButton.addEventListener("click", () => {
     count++;
     for (let d of line.split(",")) {
       d = d.trim();
-      if (d.length === 0 || !d.includes(".")) {
+      domainValidator.value = "validation@" + d;
+      if (!d.includes(".") || d.length > 253 || !domainValidator.checkValidity() || !URL.canParse("https://" + d)) {
         warn.push('Invalid entry "' + d + '"');
         continue;
       }
