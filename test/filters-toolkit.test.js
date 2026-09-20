@@ -44,6 +44,54 @@ const cases = {
       expected: "Output:\na.example,b.example",
     },
     {
+      name: "extracts the hostname from a URL with a username and password",
+      input: "https://alice:password@example.com/path",
+      expected: "Output:\nexample.com",
+    },
+    {
+      name: "extracts the hostname from a URL with only a username",
+      input: "https://alice@example.net/path",
+      expected: "Output:\nexample.net",
+    },
+    {
+      name: "handles escaped credentials and cleans the hostname after parsing",
+      input:
+        "label https://alice%40mail.example:p%3Ass%2Fword@WWW12.EXAMPLE.COM:8080/path?query#fragment trailing text",
+      expected: "Output:\nexample.com",
+    },
+    {
+      name: "preserves the complete bracketed IPv6 hostname and removes the port",
+      input: "https://[2001:db8::1]:8080/",
+      expected: "Output:\n[2001:db8::1]",
+    },
+    {
+      name: "parses IPv6 hosts without ports and with credentials",
+      input: "http://[::1]/\nhttps://alice:password@[2001:DB8::1]:8080/path",
+      expected: "Output:\n[2001:db8::1],[::1]",
+    },
+    {
+      name: "preserves IPv4 hosts while removing credentials and ports",
+      input: "http://alice:password@192.0.2.1:8080/path",
+      expected: "Output:\n192.0.2.1",
+    },
+    {
+      name: "accepts uppercase and mixed-case HTTP schemes and normalizes hostnames",
+      input: "HTTPS://EXAMPLE.COM/path\nlabel hTtP://WWW.Example.NET/path",
+      expected: "Output:\nexample.com,example.net",
+    },
+    {
+      name: "normalizes internationalized and percent-encoded hostnames using URL parsing",
+      input: "https://www.bücher.example/path\nhttps://%65xample.com/path",
+      expected: "Output:\nexample.com,xn--bcher-kva.example",
+    },
+    ...["https://[2001:db8::1", "https://example.com:invalid/", "https://example.com:65536/", "https://alice@/"].map(
+      (input) => ({
+        name: `warns about an invalid URL (${input}) and continues processing other lines`,
+        input: `https://before.example\n${input}\nhttps://after.example`,
+        expected: `Warnings:\nInvalid link "${input}"\n\nOutput:\nafter.example,before.example`,
+      }),
+    ),
+    {
       name: "cleans ww and www prefixes with optional digits and retains other subdomains",
       input:
         "https://www.a.example\nhttps://www12.b.example\nhttp://ww.c.example\nhttp://ww2.d.example\nhttps://sub.e.example\nhttps://w.f.example",
@@ -66,6 +114,18 @@ const cases = {
       input: "  https://b.example http://ignored.example https://also-ignored.example  \nhttp://a.example",
       expected:
         'Warnings:\nTwo links (second one ignored) "https://b.example http://ignored.example https://also-ignored.example"\n\nOutput:\na.example,b.example',
+    },
+    {
+      name: "warns about extra links regardless of scheme case and keeps the first hostname",
+      input: "HTTPS://alice:password@EXAMPLE.COM/path hTtP://ignored.example/path",
+      expected:
+        'Warnings:\nTwo links (second one ignored) "HTTPS://alice:password@EXAMPLE.COM/path hTtP://ignored.example/path"\n\nOutput:\nexample.com',
+    },
+    {
+      name: "warns about an invalid first URL without falling back to the second link",
+      input: "https://[invalid]/ HTTPS://valid.example",
+      expected:
+        'Warnings:\nTwo links (second one ignored) "https://[invalid]/ HTTPS://valid.example"\nInvalid link "https://[invalid]/ HTTPS://valid.example"\n\nOutput:\n',
     },
     {
       name: "warns about missing links while retaining valid lines",

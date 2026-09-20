@@ -9,22 +9,6 @@ Production files were not modified.
 
 ## Findings
 
-### FT-2: Link extraction confuses URL authority text with the hostname
-
-- **Severity:** Medium
-- **References:** `docs/FiltersToolkit/links-to-domains.js:6,26–31`.
-- **Problem:** The extraction regex takes characters up to the first colon or slash without parsing URL credentials or
-  bracketed hosts. It also matches only lowercase HTTP schemes. Thus valid links can yield a username, a
-  username-plus-host string, or a truncated IPv6 address, without an invalid-host warning.
-- **Verified behavior:** Synthetic inputs `https://alice:password@example.com/path`, `https://alice@example.net/path`,
-  and `https://[2001:db8::1]:8080/` produce `alice`, `alice@example.net`, and `[2001`, respectively. Node's built-in
-  `URL(...).hostname` returns `example.com`, `example.net`, and `[2001:db8::1]`. `HTTPS://EXAMPLE.COM/path` produces a
-  “No link” warning. These examples contain invented credentials only.
-- **Impact:** Ordinary URL authority syntax produces invalid filter entries or targets the wrong host. Unsupported host
-  types are silently emitted as corrupted text rather than rejected.
-- **Recommendation:** Locate the first HTTP(S) URL without requiring a lowercase scheme, parse it using `URL`, then
-  apply the intended hostname cleanup. Explicitly reject and warn about host forms the filter format cannot represent.
-
 ### FT-3: Merge's validation accepts malformed domain entries
 
 - **Severity:** Medium
