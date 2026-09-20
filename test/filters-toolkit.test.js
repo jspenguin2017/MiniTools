@@ -113,19 +113,19 @@ const cases = {
       name: "warns about extra links and extracts only the first link",
       input: "  https://b.example http://ignored.example https://also-ignored.example  \nhttp://a.example",
       expected:
-        'Warnings:\nTwo links (second one ignored) "https://b.example http://ignored.example https://also-ignored.example"\n\nOutput:\na.example,b.example',
+        'Warnings:\nMultiple HTTP(S) prefixes (only the first link candidate is parsed) "https://b.example http://ignored.example https://also-ignored.example"\n\nOutput:\na.example,b.example',
     },
     {
       name: "warns about extra links regardless of scheme case and keeps the first hostname",
       input: "HTTPS://alice:password@EXAMPLE.COM/path hTtP://ignored.example/path",
       expected:
-        'Warnings:\nTwo links (second one ignored) "HTTPS://alice:password@EXAMPLE.COM/path hTtP://ignored.example/path"\n\nOutput:\nexample.com',
+        'Warnings:\nMultiple HTTP(S) prefixes (only the first link candidate is parsed) "HTTPS://alice:password@EXAMPLE.COM/path hTtP://ignored.example/path"\n\nOutput:\nexample.com',
     },
     {
       name: "warns about an invalid first URL without falling back to the second link",
       input: "https://[invalid]/ HTTPS://valid.example",
       expected:
-        'Warnings:\nTwo links (second one ignored) "https://[invalid]/ HTTPS://valid.example"\nInvalid link "https://[invalid]/ HTTPS://valid.example"\n\nOutput:\n',
+        'Warnings:\nMultiple HTTP(S) prefixes (only the first link candidate is parsed) "https://[invalid]/ HTTPS://valid.example"\nInvalid link "https://[invalid]/ HTTPS://valid.example"\n\nOutput:\n',
     },
     {
       name: "warns about missing links while retaining valid lines",
@@ -136,7 +136,8 @@ const cases = {
     {
       name: "reports both warnings when repeated protocols contain no valid link",
       input: "http: https:",
-      expected: 'Warnings:\nTwo links (second one ignored) "http: https:"\nNo link "http: https:"\n\nOutput:\n',
+      expected:
+        'Warnings:\nMultiple HTTP(S) prefixes (only the first link candidate is parsed) "http: https:"\nNo link "http: https:"\n\nOutput:\n',
     },
   ],
   "merge-domains": [
