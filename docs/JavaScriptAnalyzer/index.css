@@ -15,5 +15,18 @@
 @media (min-width: 900px) {
   #unhex > .controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 0;
+  }
+
+  #unhex > .controls > form {
+    display: grid;
+    /* Share rows for labels, help text, inputs, errors, and buttons. */
+    grid-row: span 5;
+    grid-template-rows: subgrid;
+  }
+
+  #unhex > .controls button {
+    grid-row: 5;
+    justify-self: start;
   }
 }
