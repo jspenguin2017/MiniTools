@@ -22,10 +22,10 @@ const clearError = ($field, $error) => {
 $input.addEventListener("input", () => clearError($input, $inputError));
 $findValueInput.addEventListener("input", () => clearError($findValueInput, $valueError));
 
-/** @param {string} message Short result or error message to display and announce. */
+/** @param {string} message Status message to display and announce after clearing previous results. */
 const showMessage = (message) => {
-  $output.textContent = message;
-  $output.hidden = false;
+  $output.textContent = "";
+  $output.hidden = true;
   $status.textContent = message;
 };
 
@@ -40,15 +40,13 @@ const handleParse = () => {
   try {
     unHexData = parseArray($input.value);
     $input.value = JSON.stringify(unHexData);
-    showMessage("Input successfully parsed.");
-    $status.textContent = "Input successfully parsed. The array field now contains decoded JSON.";
+    showMessage("Input successfully parsed. The array field now contains decoded JSON.");
   } catch (err) {
     console.log(err);
-    showMessage("Could not parse input.");
     $input.setAttribute("aria-invalid", "true");
     $inputError.textContent =
       "Enter a complete array literal, including square brackets. Expressions are not supported.";
-    $status.textContent = `Could not parse input. ${$inputError.textContent}`;
+    showMessage(`Could not parse input. ${$inputError.textContent}`);
   }
 };
 
@@ -57,8 +55,7 @@ $parseButton.addEventListener("click", handleParse);
 /** @returns {void} Display indices and values of string entries containing the query. */
 const handleFindIndex = () => {
   if (unHexData.length === 0) {
-    showMessage("Nothing parsed.");
-    $status.textContent = "Nothing parsed. Parse a nonempty array before searching.";
+    showMessage("Nothing parsed. Parse a nonempty array before searching.");
     return;
   }
   let output = "";
@@ -88,26 +85,23 @@ document.getElementById("find-index-form").addEventListener("submit", (event) =>
 const handleFindValue = () => {
   clearError($findValueInput, $valueError);
   if (unHexData.length === 0) {
-    showMessage("Nothing parsed.");
-    $status.textContent = "Nothing parsed. Parse a nonempty array before searching.";
+    showMessage("Nothing parsed. Parse a nonempty array before searching.");
     return;
   }
   let i = parseInt($findValueInput.value);
   if (isNaN(i) || !isFinite(i)) {
-    showMessage("Index not valid integer.");
     $findValueInput.setAttribute("aria-invalid", "true");
     $valueError.textContent = "Enter an integer, for example 0 or -1.";
-    $status.textContent = `Index not valid integer. ${$valueError.textContent}`;
+    showMessage(`Index not valid integer. ${$valueError.textContent}`);
     return;
   }
   if (i < 0) {
     i = unHexData.length + i;
   }
   if (i < 0 || i >= unHexData.length) {
-    showMessage("Index out of range.");
     $findValueInput.setAttribute("aria-invalid", "true");
     $valueError.textContent = `Use an index from -${unHexData.length} to ${unHexData.length - 1}.`;
-    $status.textContent = `Index out of range. ${$valueError.textContent}`;
+    showMessage(`Index out of range. ${$valueError.textContent}`);
     return;
   }
   try {
