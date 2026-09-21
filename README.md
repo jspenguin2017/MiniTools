@@ -52,7 +52,9 @@ build step is required.
 
 Run `npm test` to run the Vitest suite with V8 coverage. Tests use jsdom for browser interactions and require 100% line,
 branch, function, and statement coverage for JavaScript in `docs/`. Open `coverage/index.html` for the detailed report.
-Use `npm run test:watch` to rerun tests as you edit, and `npm run format` to format the repository.
+Use `npm run test:watch` to rerun tests as you edit. Run `npm run format` to format the repository or
+`npm run format:check` to check formatting; both cache results using file metadata. Use `npm run format:nocache` to
+format without the cache.
 
 Run the browser accessibility checks after installing Playwright's Chromium browser:
 
@@ -60,6 +62,9 @@ Run the browser accessibility checks after installing Playwright's Chromium brow
 npx playwright install chromium
 npm run test:a11y
 ```
+
+Run `npm run verify` to check formatting without the cache, run the unit tests with coverage, and run the browser
+accessibility checks.
 
 The tests start their own local server and check all three pages with axe-core, keyboard interactions, contrast,
 responsive layouts, enlarged text, and forced colors. To use an installed Google Chrome instead, run

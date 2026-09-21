@@ -33,10 +33,13 @@
   },
   "scripts": {
     "dev": "node scripts/serve-docs.js",
-    "format": "prettier . --write",
+    "format": "prettier --write --cache --cache-strategy metadata .",
+    "format:check": "prettier --check --cache --cache-strategy metadata .",
+    "format:nocache": "prettier --write .",
     "test": "vitest run --coverage",
     "test:a11y": "playwright test",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "verify": "prettier --check . && npm run test && npm run test:a11y"
   },
   "type": "module",
   "version": "1.0.2"
