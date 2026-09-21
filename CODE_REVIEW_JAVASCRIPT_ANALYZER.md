@@ -27,18 +27,6 @@ covered separately. Production files were not modified.
   or use a literal serializer that retains every supported value and sparse slot. Ensure the editable representation and
   lookup data cannot silently diverge.
 
-### JA-2: Find Value accepts malformed or fractional indices
-
-- **Severity:** Low
-- **References:** `docs/JavaScriptAnalyzer/unhex.js:54–57`.
-- **Problem:** `parseInt` accepts an initial numeric prefix and discards the remainder; testing the result with `isNaN`
-  and `isFinite` does not validate that the supplied input was an integer.
-- **Verified behavior:** After parsing `["zero", "one", "two"]`, index `1.8` returns `one`, `2garbage` returns `two`,
-  and `-0.5` returns `zero`. None produces the existing “Index not valid integer.” message.
-- **Impact:** A mistyped or fractional index silently returns an unrelated entry as though the lookup were valid.
-- **Recommendation:** Validate the entire trimmed input against the supported integer syntax before conversion, and
-  check that the result is a safe integer. Retain the documented negative-index handling after validation.
-
 ## Checks performed
 
 - Read the complete tokenizer and parser, including comments, number formats/separators, Unicode and string escapes,
