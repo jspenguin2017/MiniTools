@@ -93,7 +93,6 @@ const handleFindValue = () => {
   if (!Number.isSafeInteger(i)) {
     $findValueInput.setAttribute("aria-invalid", "true");
     $valueError.textContent = "Enter an integer, for example 0 or -1.";
-    showMessage(`Index not valid integer. ${$valueError.textContent}`);
     return;
   }
   if (i < 0) {
@@ -102,7 +101,6 @@ const handleFindValue = () => {
   if (i < 0 || i >= unHexData.length) {
     $findValueInput.setAttribute("aria-invalid", "true");
     $valueError.textContent = `Use an index from -${unHexData.length} to ${unHexData.length - 1}.`;
-    showMessage(`Index out of range. ${$valueError.textContent}`);
     return;
   }
   try {

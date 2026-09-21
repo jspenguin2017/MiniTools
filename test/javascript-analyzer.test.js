@@ -61,6 +61,23 @@ function assertMessage(tool, output, message) {
   assert.ok(tool.status.textContent.startsWith(message));
 }
 
+/**
+ * Check index validation without changing the existing output or status.
+ * @param {Awaited<ReturnType<typeof analyzer>>} tool Analyzer controls.
+ * @param {string} index Invalid index to look up.
+ * @param {string} message Expected field error.
+ */
+function assertValueError(tool, index, message) {
+  const output = tool.output.textContent;
+  const hidden = tool.output.hidden;
+  const status = tool.status.textContent;
+  assert.equal(tool.findValue(index), output);
+  assert.equal(tool.output.hidden, hidden);
+  assert.equal(tool.status.textContent, status);
+  assert.equal(tool.valueInput.getAttribute("aria-invalid"), "true");
+  assert.equal(tool.window.document.getElementById("find-value-error").textContent, message);
+}
+
 describe("JavaScript Analyzer", () => {
   it("announces results without reading the entire dataset or moving focus", async () => {
     const tool = await analyzer();
@@ -95,18 +112,19 @@ describe("JavaScript Analyzer", () => {
     assert.equal(tool.input.hasAttribute("aria-invalid"), false);
     assert.equal(parseError.textContent, "");
     tool.parse('["value"]');
+    const status = tool.status.textContent;
     tool.findValue("bad");
     const indexError = tool.window.document.getElementById("find-value-error");
     assert.equal(tool.valueInput.getAttribute("aria-invalid"), "true");
     assert.equal(indexError.textContent, "Enter an integer, for example 0 or -1.");
     assert.ok(tool.valueInput.getAttribute("aria-describedby").includes(indexError.id));
-    assert.ok(tool.status.textContent.includes(indexError.textContent));
+    assert.equal(tool.status.textContent, status);
     tool.valueInput.dispatchEvent(new Event("input"));
     assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
     assert.equal(indexError.textContent, "");
     tool.findValue("10");
     assert.equal(indexError.textContent, "Use an index from -1 to 0.");
-    assert.ok(tool.status.textContent.includes(indexError.textContent));
+    assert.equal(tool.status.textContent, status);
     tool.findValue("0");
     assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
     assert.equal(indexError.textContent, "");
@@ -193,7 +211,7 @@ describe("JavaScript Analyzer", () => {
       tool.parse('["new"]');
       assert.equal(tool.findIndex("old"), "");
       assert.equal(tool.findValue("0"), "new");
-      assertMessage(tool, tool.findValue("1"), "Index out of range.");
+      assertValueError(tool, "1", "Use an index from -1 to 0.");
       tool.parse("[]");
       assertMessage(tool, tool.findValue("0"), "Nothing parsed.");
     });
@@ -224,8 +242,8 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findIndex(""), "");
       assert.equal(tool.findValue("0"), "");
       assert.equal(tool.findValue("-2"), "");
-      assertMessage(tool, tool.findValue("2"), "Index out of range.");
-      assertMessage(tool, tool.findValue("-3"), "Index out of range.");
+      assertValueError(tool, "2", "Use an index from -2 to 1.");
+      assertValueError(tool, "-3", "Use an index from -2 to 1.");
       assertMessage(tool, tool.parse("[]"), "Input successfully parsed.");
       assertMessage(tool, tool.findIndex(""), "Nothing parsed.");
       assertMessage(tool, tool.findValue("-1"), "Nothing parsed.");
@@ -368,12 +386,7 @@ describe("JavaScript Analyzer", () => {
         const tool = await analyzer();
         tool.parse('["first", "middle", "last"]');
         assert.equal(tool.findValue("0"), "first");
-        assertMessage(tool, tool.findValue(index), "Index not valid integer.");
-        assert.equal(tool.valueInput.getAttribute("aria-invalid"), "true");
-        assert.equal(
-          tool.window.document.getElementById("find-value-error").textContent,
-          "Enter an integer, for example 0 or -1.",
-        );
+        assertValueError(tool, index, "Enter an integer, for example 0 or -1.");
       });
     }
 
@@ -381,7 +394,8 @@ describe("JavaScript Analyzer", () => {
       it(`rejects out-of-range index ${index}`, async () => {
         const tool = await analyzer();
         tool.parse('["first", "middle", "last"]');
-        assertMessage(tool, tool.findValue(index), "Index out of range.");
+        assert.equal(tool.findIndex("i"), "0:first\n1:middle");
+        assertValueError(tool, index, "Use an index from -3 to 2.");
       });
     }
 
@@ -413,11 +427,11 @@ describe("JavaScript Analyzer", () => {
 
     it("replaces errors with a successful result on the next search", async () => {
       const tool = await analyzer();
-      tool.parse('["value"]');
-      assertMessage(tool, tool.findValue("bad"), "Index not valid integer.");
+      tool.parse('["value", "next"]');
+      assertValueError(tool, "bad", "Enter an integer, for example 0 or -1.");
       assert.equal(tool.findValue("0"), "value");
-      assertMessage(tool, tool.findValue("1"), "Index out of range.");
-      assert.equal(tool.findValue("-1"), "value");
+      assertValueError(tool, "2", "Use an index from -2 to 1.");
+      assert.equal(tool.findValue("-1"), "next");
     });
   });
 

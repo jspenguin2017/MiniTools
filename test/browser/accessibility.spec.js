@@ -152,7 +152,9 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await expect(index).toBeFocused();
   await expect(index).toHaveAttribute("aria-invalid", "true");
   await expect(index).toHaveAccessibleDescription(/Enter an integer/);
-  await expect(status).toContainText("Index not valid integer.");
+  await expect(status).toHaveText("Matching string entries: 2. Results are ready below.");
+  await expect(output).toHaveText("0:first\n1:second");
+  await expect(output).toBeVisible();
   await audit(page);
   await index.fill("1");
   await expect(index).not.toHaveAttribute("aria-invalid");
