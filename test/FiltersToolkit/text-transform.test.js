@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it, onTestFinished, vi } from "vitest";
-import { createTextTransform } from "../docs/FiltersToolkit/text-transform.js";
+import { createTextTransform } from "../../docs/FiltersToolkit/text-transform.js";
 
 /**
  * Exercise the shared transform API directly so clipboard promises can be awaited.
@@ -8,7 +8,10 @@ import { createTextTransform } from "../docs/FiltersToolkit/text-transform.js";
 function transform() {
   document.body.innerHTML = `
     <section>
-      <div><textarea>nested input</textarea><pre>nested output</pre><button>Nested</button></div>
+      <div>
+        <textarea>nested input</textarea><pre>nested output</pre><button>Nested</button>
+        <p role="status">nested status</p>
+      </div>
       <textarea></textarea><pre hidden></pre><p role="status" aria-atomic="true"></p>
       <button>Transform</button><button class="green hidden">Copy Output</button>
     </section>
@@ -17,7 +20,7 @@ function transform() {
   const container = /** @type {HTMLElement} */ (document.querySelector("section"));
   const input = /** @type {HTMLTextAreaElement} */ (container.querySelector(":scope > textarea"));
   const output = /** @type {HTMLPreElement} */ (container.querySelector(":scope > pre"));
-  const status = /** @type {HTMLElement} */ (container.querySelector('[role="status"]'));
+  const status = /** @type {HTMLElement} */ (container.querySelector(':scope > [role="status"]'));
   const writeText = vi.fn(async (/** @type {string} */ _text) => {});
   const clipboard = { writeText };
   vi.stubGlobal("navigator", { clipboard });
@@ -27,8 +30,9 @@ function transform() {
 describe("shared text transform", () => {
   it("binds direct controls and leaves nested controls alone", () => {
     const tool = transform();
-    assert.equal(tool.transformButton.textContent, "Transform");
-    assert.equal(tool.copyButton.textContent, "Copy Output");
+    const buttons = tool.container.querySelectorAll(":scope > button");
+    assert.equal(tool.transformButton, buttons[0]);
+    assert.equal(tool.copyButton, buttons[1]);
     tool.input.value = "direct input";
     assert.deepEqual(tool.getLines(), ["direct input"]);
     tool.setOutput("direct output");
@@ -41,6 +45,7 @@ describe("shared text transform", () => {
       "nested input",
     );
     assert.equal(tool.container.querySelector("div pre").textContent, "nested output");
+    assert.equal(tool.container.querySelector('div [role="status"]').textContent, "nested status");
   });
 
   it("reads current input without trimming or dropping empty lines", () => {
@@ -66,7 +71,7 @@ describe("shared text transform", () => {
     assert.equal(tool.status.textContent, "Transformation complete. Warnings: 2. Output is ready below.");
     await tool.copyOutput();
     assert.equal(tool.status.textContent, "Output copied to clipboard.");
-    assert.deepEqual(tool.writeText.mock.calls[0], [text]);
+    assert.deepEqual(tool.writeText.mock.calls, [[text]]);
     assert.equal(tool.writeText.mock.contexts[0], navigator.clipboard);
 
     tool.setOutput("replacement", []);
@@ -75,16 +80,18 @@ describe("shared text transform", () => {
     assert.equal(tool.output.textContent, "Output:\n");
     assert.equal(tool.status.textContent, "Transformation complete. Warnings: 0. Output is empty.");
     await tool.copyOutput();
-    assert.deepEqual(tool.writeText.mock.calls[1], [""]);
-    assert.equal(tool.writeText.mock.calls.length, 2);
+    assert.deepEqual(tool.writeText.mock.calls, [[text], [""]]);
+    assert.equal(tool.status.textContent, "Output copied to clipboard.");
   });
 
   it("copies an empty initial buffer without changing the initial display", async () => {
     const tool = transform();
     await tool.copyOutput();
-    assert.deepEqual(tool.writeText.mock.calls[0], [""]);
+    assert.deepEqual(tool.writeText.mock.calls, [[""]]);
     assert.equal(tool.output.textContent, "");
+    assert.equal(tool.output.hidden, true);
     assert.equal(tool.copyButton.classList.contains("hidden"), true);
+    assert.equal(tool.status.textContent, "Output copied to clipboard.");
   });
 
   it("waits for the clipboard and captures the output at the time of each copy", async () => {
@@ -107,10 +114,12 @@ describe("shared text transform", () => {
     tool.setOutput("second", ["new warning"]);
     await tool.copyOutput();
     assert.equal(settled, false);
+    assert.equal(tool.status.textContent, "Output copied to clipboard.");
     assert.deepEqual(tool.writeText.mock.calls, [["first"], ["second"]]);
     firstWrite.resolve();
     await firstCopy;
     assert.equal(settled, true);
+    assert.equal(tool.status.textContent, "Output copied to clipboard.");
     assert.equal(tool.output.textContent, "Warnings:\nnew warning\n\nOutput:\nsecond");
     assert.equal(tool.input.value, "untransformed input");
     assert.equal(tool.window.document.activeElement, tool.input);
@@ -147,6 +156,8 @@ describe("shared text transform", () => {
     await tool.copyOutput();
     assert.equal(tool.status.textContent, "Could not copy output. Select the output below and copy it manually.");
     assert.equal(tool.output.textContent, "Output:\nresult");
+    assert.equal(tool.output.hidden, false);
     assert.equal(tool.copyButton.classList.contains("hidden"), false);
+    assert.deepEqual(tool.writeText.mock.calls, []);
   });
 });

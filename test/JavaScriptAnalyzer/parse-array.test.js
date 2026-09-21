@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "vitest";
-import { parseArray } from "../docs/JavaScriptAnalyzer/parse-array.js";
+import { parseArray } from "../../docs/JavaScriptAnalyzer/parse-array.js";
 
-/** @typedef {import("../docs/JavaScriptAnalyzer/parse-array.js").ArrayLiteralValue} ArrayLiteralValue */
-/** @typedef {import("../docs/JavaScriptAnalyzer/parse-array.js").ArrayLiteralObject} ArrayLiteralObject */
+/** @typedef {import("../../docs/JavaScriptAnalyzer/parse-array.js").ArrayLiteralValue} ArrayLiteralValue */
+/** @typedef {import("../../docs/JavaScriptAnalyzer/parse-array.js").ArrayLiteralObject} ArrayLiteralObject */
 /** @typedef {[name: string, source: string, expected: ArrayLiteralValue[]]} ParseCase */
 
 describe("array literal parser", () => {

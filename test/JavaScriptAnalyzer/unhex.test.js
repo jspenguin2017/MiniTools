@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it, vi } from "vitest";
-import { loadPage } from "./helpers/load-page.js";
+import { loadPage } from "../helpers/load-page.js";
+
+const PARSED_MESSAGE = "Input successfully parsed. The array field now contains decoded JSON.";
+const PARSE_FAILURE_MESSAGE =
+  "Could not parse input. Enter a complete array literal, including square brackets. Expressions are not supported.";
+const NOTHING_PARSED_MESSAGE = "Nothing parsed. Parse a nonempty array before searching.";
 
 /**
  * Load the analyzer and expose its controls and interactions.
@@ -53,12 +58,12 @@ async function analyzer() {
  * Check status-only feedback and ensure previous results are cleared and hidden.
  * @param {Awaited<ReturnType<typeof analyzer>>} tool Analyzer controls.
  * @param {string} output Results text after the action.
- * @param {string} message Expected beginning of the status message.
+ * @param {string} message Expected complete status message.
  */
 function assertMessage(tool, output, message) {
   assert.equal(output, "");
   assert.equal(tool.output.hidden, true);
-  assert.ok(tool.status.textContent.startsWith(message));
+  assert.equal(tool.status.textContent, message);
 }
 
 /**
@@ -78,7 +83,7 @@ function assertValueError(tool, index, message) {
   assert.equal(tool.window.document.getElementById("find-value-error").textContent, message);
 }
 
-describe("JavaScript Analyzer", () => {
+describe("unhex", () => {
   it("announces results without reading the entire dataset or moving focus", async () => {
     const tool = await analyzer();
     assert.equal(tool.output.hidden, true);
@@ -86,17 +91,46 @@ describe("JavaScript Analyzer", () => {
     tool.parse('["first", "second", ""]');
     assert.equal(tool.status.textContent, "Input successfully parsed. The array field now contains decoded JSON.");
     assert.equal(tool.window.document.activeElement, tool.input);
+    tool.indexInput.focus();
     tool.findIndex("s");
     assert.equal(tool.status.textContent, "Matching string entries: 2. Results are ready below.");
+    assert.equal(tool.output.textContent, "0:first\n1:second");
     assert.equal(tool.output.hidden, false);
+    assert.equal(tool.window.document.activeElement, tool.indexInput);
     tool.findIndex("missing");
     assert.equal(tool.status.textContent, "No matching string entries found.");
+    assert.equal(tool.output.textContent, "");
     assert.equal(tool.output.hidden, true);
+    assert.equal(tool.window.document.activeElement, tool.indexInput);
+    tool.valueInput.focus();
     tool.findValue("-1");
     assert.equal(tool.status.textContent, "Value found at index 2. The value has no text representation.");
+    assert.equal(tool.output.textContent, "");
+    assert.equal(tool.output.hidden, true);
+    assert.equal(tool.window.document.activeElement, tool.valueInput);
     tool.findValue("0");
     assert.equal(tool.status.textContent, "Value found at index 0. The result is ready below.");
+    assert.equal(tool.output.textContent, "first");
     assert.equal(tool.output.hidden, false);
+    assert.equal(tool.window.document.activeElement, tool.valueInput);
+  });
+
+  it("handles each search form submission without navigating", async () => {
+    const tool = await analyzer();
+    tool.parse('["first", "second"]');
+    tool.indexInput.value = "s";
+    tool.valueInput.value = "1";
+    for (const [id, expected, status] of [
+      ["find-index-form", "0:first\n1:second", "Matching string entries: 2. Results are ready below."],
+      ["find-value-form", "second", "Value found at index 1. The result is ready below."],
+    ]) {
+      const form = tool.window.document.getElementById(id);
+      const event = new Event("submit", { bubbles: true, cancelable: true });
+      assert.equal(form.dispatchEvent(event), false);
+      assert.equal(tool.output.textContent, expected);
+      assert.equal(tool.output.hidden, false);
+      assert.equal(tool.status.textContent, status);
+    }
   });
 
   it("associates errors with their fields and clears them when corrected", async () => {
@@ -105,9 +139,12 @@ describe("JavaScript Analyzer", () => {
     tool.parse("[");
     assert.equal(tool.input.getAttribute("aria-invalid"), "true");
     const parseError = tool.window.document.getElementById("unhex-input-error");
-    assert.ok(parseError.textContent.includes("square brackets"));
-    assert.ok(tool.input.getAttribute("aria-describedby").includes(parseError.id));
-    assert.ok(tool.status.textContent.includes(parseError.textContent));
+    assert.equal(
+      parseError.textContent,
+      "Enter a complete array literal, including square brackets. Expressions are not supported.",
+    );
+    assert.equal(tool.input.getAttribute("aria-describedby").split(/\s+/).includes(parseError.id), true);
+    assert.equal(tool.status.textContent, `Could not parse input. ${parseError.textContent}`);
     tool.input.dispatchEvent(new Event("input"));
     assert.equal(tool.input.hasAttribute("aria-invalid"), false);
     assert.equal(parseError.textContent, "");
@@ -117,7 +154,7 @@ describe("JavaScript Analyzer", () => {
     const indexError = tool.window.document.getElementById("find-value-error");
     assert.equal(tool.valueInput.getAttribute("aria-invalid"), "true");
     assert.equal(indexError.textContent, "Enter an integer, for example 0 or -1.");
-    assert.ok(tool.valueInput.getAttribute("aria-describedby").includes(indexError.id));
+    assert.equal(tool.valueInput.getAttribute("aria-describedby").split(/\s+/).includes(indexError.id), true);
     assert.equal(tool.status.textContent, status);
     tool.valueInput.dispatchEvent(new Event("input"));
     assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
@@ -131,13 +168,30 @@ describe("JavaScript Analyzer", () => {
   });
 
   describe("parse", () => {
+    for (const [source, message] of [
+      ['["replacement"]', PARSED_MESSAGE],
+      ["[", PARSE_FAILURE_MESSAGE],
+    ]) {
+      it(`clears old results and index errors after a ${source === "[" ? "failed" : "successful"} parse`, async () => {
+        const tool = await analyzer();
+        vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
+        tool.parse('["old"]');
+        assert.equal(tool.findValue("0"), "old");
+        assertValueError(tool, "bad", "Enter an integer, for example 0 or -1.");
+
+        assertMessage(tool, tool.parse(source), message);
+        assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
+        assert.equal(tool.window.document.getElementById("find-value-error").textContent, "");
+      });
+    }
+
     it("decodes hexadecimal strings and rewrites the input as JSON", async () => {
       const tool = await analyzer();
       assert.equal(tool.output.textContent, "");
       assertMessage(
         tool,
         tool.parse(String.raw`['\x6c\x6f\x67', '\x74\x65\x73\x74\x31\x32\x33', '\x74\x65\x73\x74\x33\x32\x31']`),
-        "Input successfully parsed.",
+        PARSED_MESSAGE,
       );
       assert.equal(tool.input.value, '["log","test123","test321"]');
       assert.equal(tool.findIndex("test"), "1:test123\n2:test321");
@@ -146,7 +200,7 @@ describe("JavaScript Analyzer", () => {
 
     it("accepts ordinary arrays with strings and non-string entries", async () => {
       const tool = await analyzer();
-      assertMessage(tool, tool.parse('["text", 42, true, null, {"a": 1}, ["nested"]]'), "Input successfully parsed.");
+      assertMessage(tool, tool.parse('["text", 42, true, null, {"a": 1}, ["nested"]]'), PARSED_MESSAGE);
       assert.equal(tool.input.value, '["text",42,true,null,{"a":1},["nested"]]');
     });
 
@@ -155,7 +209,7 @@ describe("JavaScript Analyzer", () => {
       assertMessage(
         tool,
         tool.parse("/* data */ [undefined,, NaN, Infinity, -0x10, {key: 'value'}, 'last',];"),
-        "Input successfully parsed.",
+        PARSED_MESSAGE,
       );
       assert.equal(tool.input.value, '[null,null,null,null,-16,{"key":"value"},"last"]');
       for (const [index, expected] of ["", "", "NaN", "Infinity", "-16", "[object Object]", "last"].entries()) {
@@ -167,6 +221,7 @@ describe("JavaScript Analyzer", () => {
 
     it("rejects executable input without running it and clears previous data", async () => {
       const tool = await analyzer();
+      vi.stubGlobal("injected", undefined);
       vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
       for (const source of [
         "[]; window.injected = true",
@@ -176,32 +231,34 @@ describe("JavaScript Analyzer", () => {
         "[].constructor.constructor('window.injected = true')()",
       ]) {
         tool.parse("['old']");
-        assertMessage(tool, tool.parse(source), "Could not parse input.");
+        assertMessage(tool, tool.parse(source), PARSE_FAILURE_MESSAGE);
         assert.equal(tool.input.value, source);
         assert.equal(tool.window.injected, undefined);
-        assertMessage(tool, tool.findIndex("old"), "Nothing parsed.");
-        assertMessage(tool, tool.findValue("0"), "Nothing parsed.");
+        assertMessage(tool, tool.findIndex("old"), NOTHING_PARSED_MESSAGE);
+        assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
       }
     });
 
     it("accepts an empty array and reports nothing parsed when searching it", async () => {
       const tool = await analyzer();
-      assertMessage(tool, tool.parse("[]"), "Input successfully parsed.");
+      assertMessage(tool, tool.parse("[]"), PARSED_MESSAGE);
       assert.equal(tool.input.value, "[]");
-      assertMessage(tool, tool.findIndex("anything"), "Nothing parsed.");
-      assertMessage(tool, tool.findValue("0"), "Nothing parsed.");
+      assertMessage(tool, tool.findIndex("anything"), NOTHING_PARSED_MESSAGE);
+      assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
     });
 
     for (const source of ["", "['unterminated]"]) {
       it(`reports ${source ? "malformed array syntax" : "empty input"} without overwriting the input`, async () => {
         const tool = await analyzer();
         const log = vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
-        assertMessage(tool, tool.parse(source), "Could not parse input.");
+        assertMessage(tool, tool.parse(source), PARSE_FAILURE_MESSAGE);
         assert.equal(tool.input.value, source);
         assert.equal(log.mock.calls.length, 1);
+        assert.equal(log.mock.calls[0].length, 1);
         assert.equal(log.mock.calls[0][0].name, "SyntaxError");
-        assertMessage(tool, tool.findIndex("anything"), "Nothing parsed.");
-        assertMessage(tool, tool.findValue("0"), "Nothing parsed.");
+        assert.equal(log.mock.calls[0][0].message, `Invalid array literal at position ${source.length}.`);
+        assertMessage(tool, tool.findIndex("anything"), NOTHING_PARSED_MESSAGE);
+        assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
       });
     }
 
@@ -213,17 +270,17 @@ describe("JavaScript Analyzer", () => {
       assert.equal(tool.findValue("0"), "new");
       assertValueError(tool, "1", "Use an index from -1 to 0.");
       tool.parse("[]");
-      assertMessage(tool, tool.findValue("0"), "Nothing parsed.");
+      assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
     });
 
     it("clears previous data after a parse failure and recovers on the next valid parse", async () => {
       const tool = await analyzer();
       vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
       tool.parse('["old"]');
-      assertMessage(tool, tool.parse("["), "Could not parse input.");
-      assertMessage(tool, tool.findIndex("old"), "Nothing parsed.");
-      assertMessage(tool, tool.findValue("0"), "Nothing parsed.");
-      assertMessage(tool, tool.parse('["recovered"]'), "Input successfully parsed.");
+      assertMessage(tool, tool.parse("["), PARSE_FAILURE_MESSAGE);
+      assertMessage(tool, tool.findIndex("old"), NOTHING_PARSED_MESSAGE);
+      assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
+      assertMessage(tool, tool.parse('["recovered"]'), PARSED_MESSAGE);
       assert.equal(tool.findValue("0"), "recovered");
     });
 
@@ -237,23 +294,23 @@ describe("JavaScript Analyzer", () => {
 
     it("keeps sparse nonempty arrays searchable and replaces them with a truly empty array", async () => {
       const tool = await analyzer();
-      assertMessage(tool, tool.parse("[,,]"), "Input successfully parsed.");
+      assertMessage(tool, tool.parse("[,,]"), PARSED_MESSAGE);
       assert.equal(tool.input.value, "[null,null]");
       assert.equal(tool.findIndex(""), "");
       assert.equal(tool.findValue("0"), "");
       assert.equal(tool.findValue("-2"), "");
       assertValueError(tool, "2", "Use an index from -2 to 1.");
       assertValueError(tool, "-3", "Use an index from -2 to 1.");
-      assertMessage(tool, tool.parse("[]"), "Input successfully parsed.");
-      assertMessage(tool, tool.findIndex(""), "Nothing parsed.");
-      assertMessage(tool, tool.findValue("-1"), "Nothing parsed.");
+      assertMessage(tool, tool.parse("[]"), PARSED_MESSAGE);
+      assertMessage(tool, tool.findIndex(""), NOTHING_PARSED_MESSAGE);
+      assertMessage(tool, tool.findValue("-1"), NOTHING_PARSED_MESSAGE);
     });
 
     it("round-trips decoded strings through the displayed JSON on a second parse", async () => {
       const tool = await analyzer();
       const source = String.raw`['\x00\n\t\uD800', '\u{1F600}', '\\x41', '\"']`;
       const values = ["\0\n\t\ud800", "\u{1f600}", "\\x41", '"'];
-      assertMessage(tool, tool.parse(source), "Input successfully parsed.");
+      assertMessage(tool, tool.parse(source), PARSED_MESSAGE);
       const normalized = JSON.stringify(values);
       assert.equal(tool.input.value, normalized);
       for (let pass = 0; pass < 2; pass++) {
@@ -262,7 +319,7 @@ describe("JavaScript Analyzer", () => {
         }
         assert.equal(tool.findIndex("\u{1f600}"), "1:\u{1f600}");
         assert.equal(tool.findIndex("\\x41"), "2:\\x41");
-        assertMessage(tool, tool.parse(tool.input.value), "Input successfully parsed.");
+        assertMessage(tool, tool.parse(tool.input.value), PARSED_MESSAGE);
         assert.equal(tool.input.value, normalized);
       }
     });
@@ -271,7 +328,7 @@ describe("JavaScript Analyzer", () => {
   describe("find index", () => {
     it("reports nothing parsed before the first parse", async () => {
       const tool = await analyzer();
-      assertMessage(tool, tool.findIndex("anything"), "Nothing parsed.");
+      assertMessage(tool, tool.findIndex("anything"), NOTHING_PARSED_MESSAGE);
     });
 
     it("finds substrings in every string entry and skips non-string entries", async () => {
@@ -318,8 +375,8 @@ describe("JavaScript Analyzer", () => {
   describe("find value", () => {
     it("reports nothing parsed before validating the index", async () => {
       const tool = await analyzer();
-      assertMessage(tool, tool.findValue("0"), "Nothing parsed.");
-      assertMessage(tool, tool.findValue("invalid"), "Nothing parsed.");
+      assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
+      assertMessage(tool, tool.findValue("invalid"), NOTHING_PARSED_MESSAGE);
     });
 
     for (const [index, expected] of [
@@ -416,7 +473,7 @@ describe("JavaScript Analyzer", () => {
     ]) {
       it(`displays ${source} as JSON when it cannot be converted to text`, async () => {
         const tool = await analyzer();
-        assertMessage(tool, tool.parse(`[${source},"searchable"]`), "Input successfully parsed.");
+        assertMessage(tool, tool.parse(`[${source},"searchable"]`), PARSED_MESSAGE);
         assert.equal(tool.findValue("0"), source);
         assert.equal(tool.output.children.length, 0);
         assert.equal(tool.findIndex("search"), "1:searchable");
