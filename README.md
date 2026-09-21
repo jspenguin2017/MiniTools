@@ -1,72 +1,52 @@
 # Mini Tools
 
-Mini Tools is a collection of browser tools for preparing filter lists and inspecting JavaScript arrays.
+Browser tools for preparing filter lists and inspecting JavaScript arrays. Input is processed in your browser.
 
-[Open Mini Tools](https://jspenguin2017.github.io/MiniTools/)
+[Open Mini Tools](https://jspenguin2017.github.io/MiniTools/) — no installation required.
 
 ## Features
 
 ### Filters Toolkit
 
-Transform pasted text to help write and maintain filters:
+Paste text, select **Transform**, then use **Copy Output** to copy the result without warnings.
 
-- **Links to domains:** Extract the domain from the first link on each line and produce a sorted, comma-separated list.
-  Duplicates are preserved, with warnings for missing or extra links.
-- **Merge domains:** Combine comma-separated domain lists, sort the result, and remove duplicate and invalid entries
-  with warnings. Accepts plain ASCII hostnames with at least two dot-separated labels (including Punycode names) and
-  IPv4 addresses. URLs, trailing dots, wildcards, and negation are not supported. Spelling and case are preserved;
-  duplicates are matched exactly after trimming.
-- **Unmerge domains:** Remove domains listed on subsequent lines from the first nonblank line, removing one occurrence
-  per match and warning about unmatched entries. Sort the result, preserving any remaining duplicates.
+- **Links to domains:** Extract the first HTTP(S) link's domain per line into a sorted, comma-separated list. Keep
+  duplicates; warn about missing, invalid, or extra links.
+- **Merge domains:** Combine comma-separated lists (one per line), sort, and remove invalid entries and exact duplicates
+  after trimming, with warnings. Preserve spelling and case.
+- **Unmerge domains:** Remove domains on subsequent lines from the first nonblank comma-separated list, one occurrence
+  per match. Sort the remainder, preserving duplicates; warn about unmatched entries.
 - **Unicode escape:** Convert non-ASCII characters to Unicode escape sequences.
 
-Each transformation provides a **Copy Output** button to copy the result without warnings.
+Merge accepts ASCII hostnames with at least two dot-separated labels (including Punycode) and IPv4 addresses. URLs,
+trailing dots, wildcards, and negation are unsupported.
 
 ### JavaScript Analyzer
 
-**Unhex** decodes escaped strings in JavaScript array literals and displays the parsed array as JSON. Paste the full
-array, including square brackets, and select **Parse**. Then use **Find Index** to search string entries for a substring
-or **Find Value** to look up an entry by index. Enter a decimal integer, such as `0` or `2`. Negative indices count from
-the end of the array; `-1` is the last entry.
+**Unhex** decodes escaped strings in array literals into JSON and also accepts ordinary arrays. Paste the full array,
+including square brackets, and select **Parse**:
 
-Ordinary arrays are also supported. Input is parsed as data; JavaScript expressions and statements are not executed.
+- **Find Index:** Search string entries for a substring.
+- **Find Value:** Look up a decimal integer index, starting at `0`; negative indices count from the end (`-1` is last).
 
-## Development quick start
+Select **Parse** again after editing the array. Input is parsed as data; JavaScript expressions and statements are not
+executed.
 
-Use the Node.js version specified in [package.json](package.json), then clone the repository and install dependencies:
+## Run locally
+
+Use the Node.js version specified in [package.json](package.json):
 
 ```sh
 git clone https://github.com/jspenguin2017/MiniTools.git
 cd MiniTools
 npm ci
-```
-
-Start the local server for `docs/`:
-
-```sh
 npm run dev
 ```
 
-Open [127.0.0.1:4173](http://127.0.0.1:4173/). Edit the files in `docs/` and refresh the browser to see changes. No
-build step is required.
+Open [127.0.0.1:4173](http://127.0.0.1:4173/). Edit files in `docs/` and refresh; no build step is required.
 
-Run `npm test` to run the Vitest suite with V8 coverage. Tests use jsdom for browser interactions and require 100% line,
-branch, function, and statement coverage for JavaScript in `docs/`. Open `coverage/index.html` for the detailed report.
-Use `npm run test:watch` to rerun tests as you edit. Run `npm run format` to format the repository or
-`npm run format:check` to check formatting; both cache results using file metadata. Use `npm run format:nocache` to
-format without the cache.
+Run `npm test` for unit tests. See [AGENTS.md](AGENTS.md) for development guidance, formatting, and browser test setup.
 
-Run the browser accessibility checks after installing Playwright's Chromium browser:
+## License
 
-```sh
-npx playwright install chromium
-npm run test:a11y
-```
-
-Run `npm run verify` to check formatting without the cache, run the unit tests with coverage, and run the browser
-accessibility checks.
-
-The tests start their own local server and check all three pages with axe-core, keyboard interactions, contrast,
-responsive layouts, enlarged text, and forced colors. To use an installed Google Chrome instead, run
-`PLAYWRIGHT_CHANNEL=chrome npm run test:a11y`. See [the accessibility audit](ACCESSIBILITY.md) for the fixes,
-verification results, and remaining manual testing limits.
+[MIT](LICENSE).
