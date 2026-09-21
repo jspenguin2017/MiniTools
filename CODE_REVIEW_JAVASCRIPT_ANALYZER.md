@@ -39,25 +39,6 @@ covered separately. Production files were not modified.
 - **Recommendation:** Validate the entire trimmed input against the supported integer syntax before conversion, and
   check that the result is a safe integer. Retain the documented negative-index handling after validation.
 
-### JA-3: The fixed control grid makes the index input nearly unusable at narrow widths
-
-- **Resolution:** Addressed by the responsive search forms in the
-  [accessibility fixes and verification](ACCESSIBILITY.md). Both search inputs now span 300px at a 320px viewport. The
-  observations below describe the original reviewed revision.
-- **Severity:** Medium
-- **References:** `docs/JavaScriptAnalyzer/index.css:1–9`; affected controls at
-  `docs/JavaScriptAnalyzer/index.html:26–35`.
-- **Problem:** The control row always reserves only 25% of its width for the index input and Find Value button. The
-  nested grid gives the button its full intrinsic width, leaving almost no room for the input. There is no breakpoint
-  that stacks or reallocates these controls.
-- **Verified behavior:** In installed Chrome 152 with the real page and styles served over local HTTP, the index input's
-  bounding width is only `8px` at both `375px` and `320px` viewport widths. At `600px`, it is approximately `20.34px`,
-  while its computed font size is `19.5px`.
-- **Impact:** At common phone widths, users cannot meaningfully see or edit even a short index. The layout also becomes
-  difficult to use in narrow desktop windows or when zooming.
-- **Recommendation:** Stack the parse/search groups at narrow widths, or use a responsive layout that gives both inputs
-  a practical minimum width and moves groups to another row when necessary.
-
 ## Checks performed
 
 - Read the complete tokenizer and parser, including comments, number formats/separators, Unicode and string escapes,
