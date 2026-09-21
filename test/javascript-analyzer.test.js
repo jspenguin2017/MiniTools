@@ -313,27 +313,71 @@ describe("JavaScript Analyzer", () => {
       ["-3", "first"],
       ["-0", "first"],
       ["  +1  ", "middle"],
+      ["  -1  ", "last"],
+      ["+0", "first"],
       ["01", "middle"],
-      ["0x2", "last"],
-      ["1.9", "middle"],
-      ["1suffix", "middle"],
+      ["-03", "first"],
     ]) {
-      it(`looks up ${JSON.stringify(index)} using the current parseInt behavior`, async () => {
+      it(`looks up decimal integer ${JSON.stringify(index)}`, async () => {
         const tool = await analyzer();
         tool.parse('["first", "middle", "last"]');
         assert.equal(tool.findValue(index), expected);
       });
     }
 
-    for (const index of ["", " ", "abc", "NaN", "Infinity", "-Infinity", "+", "-", "0x", "\uff11", "9".repeat(400)]) {
+    for (const index of [
+      "",
+      " ",
+      "abc",
+      "NaN",
+      "Infinity",
+      "-Infinity",
+      "+",
+      "-",
+      "++1",
+      "--1",
+      "+-1",
+      "+ 1",
+      "1 0",
+      "1.8",
+      "2garbage",
+      "-0.5",
+      "1.9",
+      "1suffix",
+      "  2garbage  ",
+      "1.0",
+      "1.0000000000000001",
+      ".5",
+      "1e0",
+      "1e2",
+      "0x",
+      "0x2",
+      "0X2",
+      "-0x1",
+      "0b1",
+      "0o1",
+      "1_0",
+      "\uff11",
+      "9007199254740992",
+      "-9007199254740992",
+      "9007199254740993",
+      "-9007199254740993",
+      "9".repeat(400),
+    ]) {
       it(`rejects ${index.length > 20 ? "an overflowing integer" : JSON.stringify(index)} as an invalid integer`, async () => {
         const tool = await analyzer();
-        tool.parse('["first"]');
+        tool.parse('["first", "middle", "last"]');
+        assert.equal(tool.findValue("0"), "first");
         assertMessage(tool, tool.findValue(index), "Index not valid integer.");
+        assert.equal(tool.valueInput.getAttribute("aria-invalid"), "true");
+        assert.equal(
+          tool.window.document.getElementById("find-value-error").textContent,
+          "Enter an integer, for example 0 or -1.",
+        );
       });
     }
 
-    for (const index of ["3", "100", "-4", "-100", "9007199254740992", "-9007199254740992"]) {
+    for (const index of ["3", "100", "-4", "-100", "9007199254740991", "-9007199254740991"]) {
       it(`rejects out-of-range index ${index}`, async () => {
         const tool = await analyzer();
         tool.parse('["first", "middle", "last"]');

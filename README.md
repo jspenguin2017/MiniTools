@@ -26,7 +26,8 @@ Each transformation provides a **Copy Output** button to copy the result without
 
 **Unhex** decodes escaped strings in JavaScript array literals and displays the parsed array as JSON. Paste the full
 array, including square brackets, and select **Parse**. Then use **Find Index** to search string entries for a substring
-or **Find Value** to look up an entry by index. Negative indices count from the end of the array.
+or **Find Value** to look up an entry by index. Enter a decimal integer, such as `0` or `2`. Negative indices count from
+the end of the array; `-1` is the last entry.
 
 Ordinary arrays are also supported. Input is parsed as data; JavaScript expressions and statements are not executed.
 

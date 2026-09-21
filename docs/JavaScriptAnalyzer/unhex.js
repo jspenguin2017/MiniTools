@@ -88,8 +88,9 @@ const handleFindValue = () => {
     showMessage("Nothing parsed. Parse a nonempty array before searching.");
     return;
   }
-  let i = parseInt($findValueInput.value);
-  if (isNaN(i) || !isFinite(i)) {
+  const index = $findValueInput.value.trim();
+  let i = /^[+-]?\d+$/.test(index) ? Number(index) : NaN;
+  if (!Number.isSafeInteger(i)) {
     $findValueInput.setAttribute("aria-invalid", "true");
     $valueError.textContent = "Enter an integer, for example 0 or -1.";
     showMessage(`Index not valid integer. ${$valueError.textContent}`);
