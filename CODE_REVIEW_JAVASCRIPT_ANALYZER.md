@@ -41,6 +41,9 @@ covered separately. Production files were not modified.
 
 ### JA-3: The fixed control grid makes the index input nearly unusable at narrow widths
 
+- **Resolution:** Addressed by the responsive search forms in the
+  [accessibility fixes and verification](ACCESSIBILITY.md). Both search inputs now span 300px at a 320px viewport. The
+  observations below describe the original reviewed revision.
 - **Severity:** Medium
 - **References:** `docs/JavaScriptAnalyzer/index.css:1–9`; affected controls at
   `docs/JavaScriptAnalyzer/index.html:26–35`.

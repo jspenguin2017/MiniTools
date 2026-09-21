@@ -13,6 +13,9 @@ workspace.
 
 ### ST-1: Shared button colors and opacity produce insufficient text contrast
 
+- **Resolution:** Addressed by the app-wide [accessibility fixes and verification](ACCESSIBILITY.md). Button text now
+  remains opaque and exceeds 4.5:1 in normal, hover, focus, and active states. The observations below describe the
+  original reviewed revision.
 - **Severity:** Medium
 - **References:** `docs/index.css:79–97,100–105,135–136`; representative affected controls at
   `docs/JavaScriptAnalyzer/index.html:27–34` and `docs/FiltersToolkit/index.html:30`.

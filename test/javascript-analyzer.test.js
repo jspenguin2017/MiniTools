@@ -16,6 +16,9 @@ async function analyzer() {
     window,
     input,
     output,
+    indexInput,
+    valueInput,
+    status: container.querySelector('[role="status"]'),
     /**
      * @param {string} source Array literal to enter and parse.
      * @returns {string} Status text after clicking Parse.
@@ -47,6 +50,56 @@ async function analyzer() {
 }
 
 describe("JavaScript Analyzer", () => {
+  it("announces results without reading the entire dataset or moving focus", async () => {
+    const tool = await analyzer();
+    assert.equal(tool.output.hidden, true);
+    tool.input.focus();
+    tool.parse('["first", "second", ""]');
+    assert.equal(tool.status.textContent, "Input successfully parsed. The array field now contains decoded JSON.");
+    assert.equal(tool.window.document.activeElement, tool.input);
+    tool.findIndex("s");
+    assert.equal(tool.status.textContent, "Matching string entries: 2. Results are ready below.");
+    assert.equal(tool.output.hidden, false);
+    tool.findIndex("missing");
+    assert.equal(tool.status.textContent, "No matching string entries found.");
+    assert.equal(tool.output.hidden, true);
+    tool.findValue("-1");
+    assert.equal(tool.status.textContent, "Value found at index 2. The value has no text representation.");
+    tool.findValue("0");
+    assert.equal(tool.status.textContent, "Value found at index 0. The result is ready below.");
+    assert.equal(tool.output.hidden, false);
+  });
+
+  it("associates errors with their fields and clears them when corrected", async () => {
+    const tool = await analyzer();
+    vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
+    tool.parse("[");
+    assert.equal(tool.input.getAttribute("aria-invalid"), "true");
+    const parseError = tool.window.document.getElementById("unhex-input-error");
+    assert.ok(parseError.textContent.includes("square brackets"));
+    assert.ok(tool.input.getAttribute("aria-describedby").includes(parseError.id));
+    assert.ok(tool.status.textContent.includes(parseError.textContent));
+    tool.input.dispatchEvent(new Event("input"));
+    assert.equal(tool.input.hasAttribute("aria-invalid"), false);
+    assert.equal(parseError.textContent, "");
+    tool.parse('["value"]');
+    tool.findValue("bad");
+    const indexError = tool.window.document.getElementById("find-value-error");
+    assert.equal(tool.valueInput.getAttribute("aria-invalid"), "true");
+    assert.equal(indexError.textContent, "Enter an integer, for example 0 or -1.");
+    assert.ok(tool.valueInput.getAttribute("aria-describedby").includes(indexError.id));
+    assert.ok(tool.status.textContent.includes(indexError.textContent));
+    tool.valueInput.dispatchEvent(new Event("input"));
+    assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
+    assert.equal(indexError.textContent, "");
+    tool.findValue("10");
+    assert.equal(indexError.textContent, "Use an index from -1 to 0.");
+    assert.ok(tool.status.textContent.includes(indexError.textContent));
+    tool.findValue("0");
+    assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
+    assert.equal(indexError.textContent, "");
+  });
+
   describe("parse", () => {
     it("decodes hexadecimal strings and rewrites the input as JSON", async () => {
       const tool = await analyzer();

@@ -1,10 +1,19 @@
 #unhex > .controls {
   display: grid;
-  grid-template-columns: 25% 50% 25%;
+  gap: 24px;
+  margin-top: 24px;
 }
 
-#unhex > .controls > div {
-  column-gap: 4px;
-  display: grid;
-  grid-template-columns: auto max-content;
+#unhex > .controls > form {
+  min-width: 0;
+}
+
+#unhex .help:empty {
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  #unhex > .controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

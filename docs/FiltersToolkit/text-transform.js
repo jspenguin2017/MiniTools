@@ -10,12 +10,13 @@
 
 /**
  * Bind a tool's controls. Callers own the transformation logic and event listeners.
- * @param {HTMLElement} $container Container with a direct textarea, pre, and transform/copy buttons in that order.
+ * @param {HTMLElement} $container Container with a direct textarea, pre, status, and transform/copy buttons in that order.
  * @returns {TextTransform} Controls and operations for this container.
  */
 export const createTextTransform = ($container) => {
   const $input = /** @type {HTMLTextAreaElement} */ ($container.querySelector(":scope > textarea"));
   const $output = /** @type {HTMLPreElement} */ ($container.querySelector(":scope > pre"));
+  const $status = /** @type {HTMLElement} */ ($container.querySelector(':scope > [role="status"]'));
   const [$transform, $copy] = /** @type {NodeListOf<HTMLButtonElement>} */ (
     $container.querySelectorAll(":scope > button")
   );
@@ -39,10 +40,18 @@ export const createTextTransform = ($container) => {
       output = text;
       result.push("Output:", output);
       $output.textContent = result.join("\n");
+      $output.hidden = false;
       $copy.classList.remove("hidden");
+      $status.textContent = `Transformation complete. Warnings: ${warnings.length}. ${text.length === 0 ? "Output is empty." : "Output is ready below."}`;
     },
     copyOutput: async () => {
-      await navigator.clipboard.writeText(output);
+      $status.textContent = "Copying output…";
+      try {
+        await navigator.clipboard.writeText(output);
+        $status.textContent = "Output copied to clipboard.";
+      } catch {
+        $status.textContent = "Could not copy output. Select the output below and copy it manually.";
+      }
     },
   };
 };

@@ -9,7 +9,7 @@ function transform() {
   document.body.innerHTML = `
     <section>
       <div><textarea>nested input</textarea><pre>nested output</pre><button>Nested</button></div>
-      <textarea></textarea><pre></pre>
+      <textarea></textarea><pre hidden></pre><p role="status" aria-atomic="true"></p>
       <button>Transform</button><button class="green hidden">Copy Output</button>
     </section>
   `;
@@ -17,10 +17,11 @@ function transform() {
   const container = /** @type {HTMLElement} */ (document.querySelector("section"));
   const input = /** @type {HTMLTextAreaElement} */ (container.querySelector(":scope > textarea"));
   const output = /** @type {HTMLPreElement} */ (container.querySelector(":scope > pre"));
+  const status = /** @type {HTMLElement} */ (container.querySelector('[role="status"]'));
   const writeText = vi.fn(async (/** @type {string} */ _text) => {});
   const clipboard = { writeText };
   vi.stubGlobal("navigator", { clipboard });
-  return { ...createTextTransform(container), window, container, input, output, writeText };
+  return { ...createTextTransform(container), window, container, input, output, status, writeText };
 }
 
 describe("shared text transform", () => {
@@ -32,6 +33,8 @@ describe("shared text transform", () => {
     assert.deepEqual(tool.getLines(), ["direct input"]);
     tool.setOutput("direct output");
     assert.equal(tool.output.textContent, "Output:\ndirect output");
+    assert.equal(tool.output.hidden, false);
+    assert.equal(tool.status.textContent, "Transformation complete. Warnings: 0. Output is ready below.");
     assert.equal(tool.copyButton.className, "green");
     assert.equal(
       /** @type {HTMLTextAreaElement} */ (tool.container.querySelector("div textarea")).value,
@@ -60,7 +63,9 @@ describe("shared text transform", () => {
     assert.equal(tool.output.textContent, "Warnings:\n<b>first</b>\nOutput:\nsecond\n\nOutput:\n" + text);
     assert.equal(tool.output.children.length, 0);
     assert.deepEqual(warnings, ["<b>first</b>", "Output:\nsecond"]);
+    assert.equal(tool.status.textContent, "Transformation complete. Warnings: 2. Output is ready below.");
     await tool.copyOutput();
+    assert.equal(tool.status.textContent, "Output copied to clipboard.");
     assert.deepEqual(tool.writeText.mock.calls[0], [text]);
     assert.equal(tool.writeText.mock.contexts[0], navigator.clipboard);
 
@@ -68,6 +73,7 @@ describe("shared text transform", () => {
     assert.equal(tool.output.textContent, "Output:\nreplacement");
     tool.setOutput("");
     assert.equal(tool.output.textContent, "Output:\n");
+    assert.equal(tool.status.textContent, "Transformation complete. Warnings: 0. Output is empty.");
     await tool.copyOutput();
     assert.deepEqual(tool.writeText.mock.calls[1], [""]);
     assert.equal(tool.writeText.mock.calls.length, 2);
@@ -96,6 +102,7 @@ describe("shared text transform", () => {
     });
     await Promise.resolve();
     assert.equal(settled, false);
+    assert.equal(tool.status.textContent, "Copying output…");
 
     tool.setOutput("second", ["new warning"]);
     await tool.copyOutput();
@@ -113,7 +120,7 @@ describe("shared text transform", () => {
   });
 
   for (const synchronous of [false, true]) {
-    it(`propagates a clipboard ${synchronous ? "exception" : "rejection"} and allows retry`, async () => {
+    it(`announces a clipboard ${synchronous ? "exception" : "rejection"} and allows retry`, async () => {
       const tool = transform();
       const failure = new DOMException("Clipboard permission denied", "NotAllowedError");
       tool.writeText.mockImplementationOnce(() => {
@@ -122,20 +129,23 @@ describe("shared text transform", () => {
       });
       tool.input.value = "current input";
       tool.setOutput("result", ["warning"]);
-      await assert.rejects(tool.copyOutput(), (error) => error === failure);
+      await tool.copyOutput();
+      assert.equal(tool.status.textContent, "Could not copy output. Select the output below and copy it manually.");
       assert.equal(tool.input.value, "current input");
       assert.equal(tool.output.textContent, "Warnings:\nwarning\n\nOutput:\nresult");
       assert.equal(tool.copyButton.classList.contains("hidden"), false);
       await tool.copyOutput();
+      assert.equal(tool.status.textContent, "Output copied to clipboard.");
       assert.deepEqual(tool.writeText.mock.calls, [["result"], ["result"]]);
     });
   }
 
-  it("rejects when the Clipboard API is unavailable without losing the output", async () => {
+  it("announces when the Clipboard API is unavailable without losing the output", async () => {
     const tool = transform();
     vi.stubGlobal("navigator", {});
     tool.setOutput("result");
-    await assert.rejects(tool.copyOutput(), TypeError);
+    await tool.copyOutput();
+    assert.equal(tool.status.textContent, "Could not copy output. Select the output below and copy it manually.");
     assert.equal(tool.output.textContent, "Output:\nresult");
     assert.equal(tool.copyButton.classList.contains("hidden"), false);
   });

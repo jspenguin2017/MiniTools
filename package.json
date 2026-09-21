@@ -5,6 +5,8 @@
   },
   "description": "Browser-based tools for working with filter lists and analyzing JavaScript arrays.",
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
     "@types/jsdom": "30.0.0",
     "@types/node": "24.13.3",
     "@vitest/coverage-v8": "5.0.0",
@@ -32,6 +34,7 @@
   "scripts": {
     "format": "prettier . --write",
     "test": "vitest run --coverage",
+    "test:a11y": "playwright test",
     "test:watch": "vitest --watch"
   },
   "type": "module",

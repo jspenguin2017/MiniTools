@@ -11,64 +11,82 @@
     <script type="module" src="unhex.js"></script>
   </head>
   <body>
-    <div class="container">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="container">
       <h1>JavaScript Analyzer</h1>
-      <p><a href="..">Home</a></p>
-    </div>
+      <nav aria-label="Main">
+        <p><a href="..">Home</a></p>
+      </nav>
+    </header>
 
-    <div class="container" id="unhex">
-      <h2>Unhex</h2>
-      <p>Enter the complete array of \x-encoded strings, including both square brackets.</p>
-      <p>This can also be a handy tool to search through any array.</p>
-      <p>Enter array literals only. JavaScript expressions and statements are not supported.</p>
-      <textarea placeholder="Paste here..." spellcheck="false"></textarea>
-      <br /><br />
-      <div class="controls">
-        <button class="blue">Parse</button>
-        <div>
-          <input placeholder="Enter value..." spellcheck="false" />
-          <button class="green">Find Index</button>
+    <main id="main-content" tabindex="-1">
+      <section class="container" id="unhex" aria-labelledby="unhex-heading">
+        <h2 id="unhex-heading">Unhex</h2>
+        <p id="unhex-input-help">Enter the complete array of \x-encoded strings, including both square brackets.</p>
+        <p>This can also be a handy tool to search through any array.</p>
+        <p>Enter array literals only. JavaScript expressions and statements are not supported.</p>
+        <label for="unhex-input">JavaScript array to parse</label>
+        <textarea id="unhex-input" aria-describedby="unhex-input-help unhex-input-error" spellcheck="false"></textarea>
+        <p class="help" id="unhex-input-error"></p>
+        <button type="button" class="blue">Parse</button>
+        <p class="help" id="unhex-search-help">
+          Parse the array before searching. After editing the array, select Parse again to update the search data.
+        </p>
+        <div class="controls">
+          <form id="find-index-form" aria-label="Find index">
+            <label for="find-index-input">Value to find</label>
+            <p class="help" id="find-index-help">
+              Search string entries for this text. Leave blank to find all string entries.
+            </p>
+            <input id="find-index-input" aria-describedby="find-index-help unhex-search-help" spellcheck="false" />
+            <button type="submit" class="green">Find Index</button>
+          </form>
+          <form id="find-value-form" aria-label="Find value">
+            <label for="find-value-input">Index to look up</label>
+            <p class="help" id="find-value-help">
+              Indices start at 0. Negative indices count from the end; -1 is the last entry.
+            </p>
+            <input
+              id="find-value-input"
+              aria-describedby="find-value-help unhex-search-help find-value-error"
+              spellcheck="false"
+            />
+            <p class="help" id="find-value-error"></p>
+            <button type="submit" class="green">Find Value</button>
+          </form>
         </div>
-        <div>
-          <input placeholder="Enter index..." spellcheck="false" />
-          <button class="green">Find Value</button>
-        </div>
-      </div>
-      <br />
-      <pre></pre>
-    </div>
+        <p class="status" role="status" aria-atomic="true"></p>
+        <pre hidden id="unhex-output" tabindex="0" role="region" aria-label="JavaScript Analyzer results"></pre>
+      </section>
 
-    <div class="container">
-      <h2>Other Useful Tools</h2>
-      <p>
-        <a href="https://enkhee-osiris.github.io/Decoder-JSFuck/" target="_blank" rel="nofollow noopener noreferrer"
-          >JSfuck Decoder</a
-        >
-      </p>
-      <p>
-        <a href="https://unminify.com/" target="_blank" rel="nofollow noopener noreferrer">Unminify</a>
-      </p>
-      <p>
-        <a href="https://matthewfl.com/unPacker.html" target="_blank" rel="nofollow noopener noreferrer">JS UnPacker</a>
-      </p>
-      <p>
-        <a href="http://jsnice.org/" target="_blank" rel="nofollow noopener noreferrer">JS Nice</a>
-      </p>
-      <p>
-        <a href="https://jscompress.com/" target="_blank" rel="nofollow noopener noreferrer">JSCompress</a>
-      </p>
-    </div>
+      <section class="container" aria-labelledby="other-tools-heading">
+        <h2 id="other-tools-heading">Other Useful Tools</h2>
+        <p>
+          <a href="https://enkhee-osiris.github.io/Decoder-JSFuck/" rel="nofollow noreferrer">JSfuck Decoder</a>
+        </p>
+        <p>
+          <a href="https://unminify.com/" rel="nofollow noreferrer">Unminify</a>
+        </p>
+        <p>
+          <a href="https://matthewfl.com/unPacker.html" rel="nofollow noreferrer">JS UnPacker</a>
+        </p>
+        <p>
+          <a href="http://jsnice.org/" rel="nofollow noreferrer">JS Nice</a>
+        </p>
+        <p>
+          <a href="https://jscompress.com/" rel="nofollow noreferrer">JSCompress</a>
+        </p>
+      </section>
+    </main>
 
-    <div class="container">
+    <footer class="container">
       <h2>Links</h2>
       <p>
-        <a href="https://github.com/jspenguin2017/MiniTools" target="_blank" rel="noopener">Source Code</a>
+        <a href="https://github.com/jspenguin2017/MiniTools">Source Code</a>
       </p>
       <p>
-        <a href="https://github.com/jspenguin2017/MiniTools/blob/main/LICENSE" target="_blank" rel="noopener"
-          >License</a
-        >
+        <a href="https://github.com/jspenguin2017/MiniTools/blob/main/LICENSE">License</a>
       </p>
-    </div>
+    </footer>
   </body>
 </html>
