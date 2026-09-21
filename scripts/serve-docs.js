@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 
-const root = new URL("../../docs/", import.meta.url);
+const root = new URL("../docs/", import.meta.url);
 const types = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript" };
 
 createServer(async (request, response) => {
@@ -20,4 +20,6 @@ createServer(async (request, response) => {
   } catch {
     response.writeHead(404).end("Not found");
   }
-}).listen(4173, "127.0.0.1");
+}).listen(4173, "127.0.0.1", () => {
+  console.log("Serving docs at http://127.0.0.1:4173/");
+});

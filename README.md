@@ -40,13 +40,13 @@ cd MiniTools
 npm ci
 ```
 
-Serve `docs/` with a local HTTP server. For example, with Python 3 installed:
+Start the local server for `docs/`:
 
 ```sh
-python3 -m http.server 8000 --directory docs
+npm run dev
 ```
 
-Open [localhost:8000](http://localhost:8000/). Edit the files in `docs/` and refresh the browser to see changes. No
+Open [127.0.0.1:4173](http://127.0.0.1:4173/). Edit the files in `docs/` and refresh the browser to see changes. No
 build step is required.
 
 Run `npm test` to run the Vitest suite with V8 coverage. Tests use jsdom for browser interactions and require 100% line,

@@ -32,6 +32,7 @@
     "url": "git+https://github.com/jspenguin2017/MiniTools.git"
   },
   "scripts": {
+    "dev": "node scripts/serve-docs.js",
     "format": "prettier . --write",
     "test": "vitest run --coverage",
     "test:a11y": "playwright test",
