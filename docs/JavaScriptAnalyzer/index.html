@@ -22,21 +22,20 @@
     <main id="main-content" tabindex="-1">
       <section class="container" id="unhex" aria-labelledby="unhex-heading">
         <h2 id="unhex-heading">Unhex</h2>
-        <p id="unhex-input-help">Enter the complete array of \x-encoded strings, including both square brackets.</p>
-        <p>This can also be a handy tool to search through any array.</p>
-        <p>Enter array literals only. JavaScript expressions and statements are not supported.</p>
+        <p id="unhex-input-help">
+          Enter an array literal, including square brackets, to decode escaped strings or search its entries. JavaScript
+          expressions and statements are unsupported.
+        </p>
+        <p class="help" id="unhex-search-help">Select Parse before searching and again after editing the array.</p>
         <label for="unhex-input">JavaScript array to parse</label>
         <textarea id="unhex-input" aria-describedby="unhex-input-help unhex-input-error" spellcheck="false"></textarea>
         <p class="help" id="unhex-input-error"></p>
         <button type="button" class="blue">Parse</button>
-        <p class="help" id="unhex-search-help">
-          Parse the array before searching. After editing the array, select Parse again to update the search data.
-        </p>
         <div class="controls">
           <form id="find-index-form" aria-label="Find index">
             <label for="find-index-input">Value to find</label>
             <p class="help" id="find-index-help">
-              Search string entries for this text. Leave blank to find all string entries.
+              Find string entries containing this text; leave blank to find all strings.
             </p>
             <input id="find-index-input" aria-describedby="find-index-help unhex-search-help" spellcheck="false" />
             <button type="submit" class="green">Find Index</button>
@@ -44,7 +43,7 @@
           <form id="find-value-form" aria-label="Find value">
             <label for="find-value-input">Index to look up</label>
             <p class="help" id="find-value-help">
-              Enter a decimal integer. Indices start at 0. Negative indices count from the end; -1 is the last entry.
+              Enter a decimal integer index, starting at 0. Negative indices count from the end; -1 is last.
             </p>
             <input
               id="find-value-input"

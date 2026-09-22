@@ -16,32 +16,34 @@
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <header class="container">
       <h1>Filters Toolkit</h1>
-      <p>A collection of tools to help you write filters.</p>
       <nav aria-label="Main">
         <p><a href="..">Home</a></p>
       </nav>
+      <p>Paste input, select Transform, then Copy Output to copy the result without warnings.</p>
+      <p id="domain-output">Domain tools return sorted, comma-separated lists and skip invalid input with warnings.</p>
+      <p id="domain-format">
+        Accepts ASCII hostnames with at least two dot-separated labels, IPv4, and bracketed IPv6. Hostname labels allow
+        letters, digits, and hyphens, but cannot start or end with a hyphen. Limits: 63 characters per label, 253 per
+        hostname. Empty labels, underscores, trailing dots, wildcards, and negation are unsupported.
+      </p>
+      <p id="domain-list-format">
+        Merge and Unmerge: enter one comma-separated list of plain domains per line, without URLs, ports, or paths. Use
+        Punycode for internationalized names. Spelling and case are preserved; matches are exact after trimming.
+      </p>
     </header>
 
     <main id="main-content" tabindex="-1">
       <section class="container" id="links-to-domains" aria-labelledby="links-to-domains-heading">
-        <h2 id="links-to-domains-heading">Text Transform: Links to Comma-Separated Domain Array</h2>
-        <p>The output array is sorted, but duplicates are not removed.</p>
-        <p>The first link on each line will be extracted; extra text in front of links is ignored.</p>
-        <p id="domain-format">
-          Domain tools accept ASCII hostnames with at least two dot-separated labels, IPv4 addresses, and bracketed IPv6
-          addresses. Hostname labels allow letters, digits, and hyphens, with no leading or trailing hyphens. Labels are
-          limited to 63 characters and hostnames to 253 characters. Empty labels, underscores, trailing dots, wildcards,
-          and negation are not supported.
-        </p>
-        <p>Warnings will be generated for lines that contain more than one link or do not contain any valid links.</p>
+        <h2 id="links-to-domains-heading">Links to Domains</h2>
         <label for="links-to-domains-input">Links to extract domains from</label>
         <p class="help" id="links-to-domains-help">
-          Enter one HTTP or HTTPS link per line, separated from surrounding text by whitespace. Punctuation attached to
-          a hostname is invalid. Internationalized URL hostnames are converted to Punycode.
+          Extract the first HTTP(S) link's domain per line, keeping duplicates. Missing or extra links produce warnings.
+          Separate links from surrounding text with whitespace; punctuation attached to a hostname is invalid.
+          Internationalized hostnames convert to Punycode.
         </p>
         <textarea
           id="links-to-domains-input"
-          aria-describedby="links-to-domains-help domain-format"
+          aria-describedby="links-to-domains-help domain-output domain-format"
           spellcheck="false"
         ></textarea>
         <button type="button" class="blue" aria-label="Transform links to domains">Transform</button>
@@ -51,18 +53,12 @@
       </section>
 
       <section class="container" id="merge-domains" aria-labelledby="merge-domains-heading">
-        <h2 id="merge-domains-heading">Text Transform: Merge Comma-Separated Domain Arrays</h2>
-        <p>The output array is sorted. Duplicate and invalid entries are removed.</p>
-        <p id="merge-domains-format">
-          Enter plain domains without URLs, ports, or paths. Use Punycode for internationalized names. Spelling and case
-          are preserved; only exact matches after trimming are duplicates.
-        </p>
-        <p>Warnings will be generated for entries that are removed.</p>
+        <h2 id="merge-domains-heading">Merge Domains</h2>
         <label for="merge-domains-input">Domain arrays to merge</label>
-        <p class="help" id="merge-domains-help">Enter one comma-separated domain array per line.</p>
+        <p class="help" id="merge-domains-help">Combine lists, removing duplicates with warnings.</p>
         <textarea
           id="merge-domains-input"
-          aria-describedby="merge-domains-help domain-format merge-domains-format"
+          aria-describedby="merge-domains-help domain-output domain-format domain-list-format"
           spellcheck="false"
         ></textarea>
         <button type="button" class="blue" aria-label="Transform domain arrays by merging">Transform</button>
@@ -72,20 +68,15 @@
       </section>
 
       <section class="container" id="unmerge-domains" aria-labelledby="unmerge-domains-heading">
-        <h2 id="unmerge-domains-heading">Text Transform: Unmerge Comma-Separated Domain Array</h2>
-        <p id="unmerge-domains-format">
-          From the first nonblank line, remove domains that are contained in subsequent lines. Enter plain domains
-          without URLs, ports, or paths. Use Punycode for internationalized names. Spelling and case are preserved; only
-          exact matches after trimming are removed.
-        </p>
-        <p>Each match removes one occurrence of a domain. Any remaining duplicate entries are preserved.</p>
-        <p>The output array is sorted.</p>
-        <p>Invalid entries are skipped on every line. Warnings will be generated for invalid or unmatched entries.</p>
+        <h2 id="unmerge-domains-heading">Unmerge Domains</h2>
         <label for="unmerge-domains-input">Domain arrays to unmerge</label>
-        <p class="help" id="unmerge-domains-help">Enter one comma-separated domain array per line.</p>
+        <p class="help" id="unmerge-domains-help">
+          Remove domains on subsequent lines from the first nonblank line, one occurrence per match. Keep remaining
+          duplicates and warn about unmatched entries.
+        </p>
         <textarea
           id="unmerge-domains-input"
-          aria-describedby="unmerge-domains-help domain-format unmerge-domains-format"
+          aria-describedby="unmerge-domains-help domain-output domain-format domain-list-format"
           spellcheck="false"
         ></textarea>
         <button type="button" class="blue" aria-label="Transform domain arrays by unmerging">Transform</button>
@@ -95,8 +86,8 @@
       </section>
 
       <section class="container" id="unicode-escape" aria-labelledby="unicode-escape-heading">
-        <h2 id="unicode-escape-heading">Text Transform: Unicode Escape</h2>
-        <p id="unicode-escape-help">Convert non-ASCII characters to their Unicode escape sequences.</p>
+        <h2 id="unicode-escape-heading">Unicode Escape</h2>
+        <p id="unicode-escape-help">Convert non-ASCII characters to Unicode escape sequences.</p>
         <label for="unicode-escape-input">Text to Unicode escape</label>
         <textarea id="unicode-escape-input" aria-describedby="unicode-escape-help" spellcheck="false"></textarea>
         <button type="button" class="blue" aria-label="Transform text to Unicode escapes">Transform</button>
