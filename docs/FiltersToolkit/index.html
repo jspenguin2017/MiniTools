@@ -35,7 +35,7 @@
     <main id="main-content" tabindex="-1">
       <section class="container" id="links-to-domains" aria-labelledby="links-to-domains-heading">
         <h2 id="links-to-domains-heading">Links to Domains</h2>
-        <p class="help" id="links-to-domains-help">
+        <p id="links-to-domains-help">
           Extract the first HTTP(S) link's domain per line, keeping duplicates. Missing or extra links produce warnings.
           Separate links from surrounding text with whitespace; punctuation attached to a hostname is invalid.
           Internationalized hostnames convert to Punycode.
@@ -54,7 +54,7 @@
 
       <section class="container" id="merge-domains" aria-labelledby="merge-domains-heading">
         <h2 id="merge-domains-heading">Merge Domains</h2>
-        <p class="help" id="merge-domains-help">Combine lists, removing duplicates with warnings.</p>
+        <p id="merge-domains-help">Combine lists, removing duplicates with warnings.</p>
         <label for="merge-domains-input">Domain lists to merge</label>
         <textarea
           id="merge-domains-input"
@@ -69,7 +69,7 @@
 
       <section class="container" id="unmerge-domains" aria-labelledby="unmerge-domains-heading">
         <h2 id="unmerge-domains-heading">Unmerge Domains</h2>
-        <p class="help" id="unmerge-domains-help">
+        <p id="unmerge-domains-help">
           Remove domains on subsequent lines from the first nonblank line, one occurrence per match. Keep remaining
           duplicates and warn about unmatched entries.
         </p>
