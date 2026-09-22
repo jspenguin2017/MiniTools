@@ -59,10 +59,10 @@ test("every transform can be run, copied and read using only the keyboard", asyn
   await page.keyboard.press("Tab");
 
   for (const [id, name, input, output] of [
-    ["links-to-domains", "Links to extract domains from", "https://example.com\ninvalid", "example.com"],
-    ["merge-domains", "Domain arrays to merge", "example.com\nexample.com", "example.com"],
-    ["unmerge-domains", "Domain arrays to unmerge", "example.com,example.org\nexample.org", "example.com"],
-    ["unicode-escape", "Text to Unicode escape", "é", "\\u00E9"],
+    ["links-to-domains", "Links", "https://example.com\ninvalid", "example.com"],
+    ["merge-domains", "Domain lists to merge", "example.com\nexample.com", "example.com"],
+    ["unmerge-domains", "Domain lists to unmerge", "example.com,example.org\nexample.org", "example.com"],
+    ["unicode-escape", "Text", "é", "\\u00E9"],
   ]) {
     const section = page.locator(`#${id}`);
     await expect(page.getByRole("textbox", { name, exact: true })).toBeFocused();
@@ -125,9 +125,9 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await page.goto("/JavaScriptAnalyzer/");
   await skipToMain(page);
   await page.keyboard.press("Tab");
-  const source = page.getByRole("textbox", { name: "JavaScript array to parse" });
-  const value = page.getByRole("textbox", { name: "Value to find" });
-  const index = page.getByRole("textbox", { name: "Index to look up" });
+  const source = page.getByRole("textbox", { name: "JavaScript array" });
+  const value = page.getByRole("textbox", { name: "Search text" });
+  const index = page.getByRole("textbox", { name: "Index", exact: true });
   const status = page.getByRole("status");
   const output = page.getByRole("region", { name: "JavaScript Analyzer results" });
   await expect(source).toBeFocused();
@@ -263,9 +263,9 @@ for (const path of ["/", "/FiltersToolkit/", "/JavaScriptAnalyzer/"]) {
         await section.getByRole("button", { name: /^Transform/ }).click();
       }
     } else if (path === "/JavaScriptAnalyzer/") {
-      await page.getByRole("textbox", { name: "JavaScript array to parse" }).fill(JSON.stringify(["a".repeat(1000)]));
+      await page.getByRole("textbox", { name: "JavaScript array" }).fill(JSON.stringify(["a".repeat(1000)]));
       await page.getByRole("button", { name: "Parse", exact: true }).click();
-      await page.getByRole("textbox", { name: "Value to find" }).fill("a");
+      await page.getByRole("textbox", { name: "Search text" }).fill("a");
       await page.getByRole("button", { name: "Find Index", exact: true }).click();
     }
     await expectReflow(page);
@@ -292,7 +292,7 @@ test("forced colors retain visible fields and keyboard focus", async ({ page }) 
   await page.goto("/JavaScriptAnalyzer/");
   await skipToMain(page);
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("textbox", { name: "JavaScript array to parse" })).toHaveCSS("outline-style", "solid");
+  await expect(page.getByRole("textbox", { name: "JavaScript array" })).toHaveCSS("outline-style", "solid");
   await page.keyboard.press("Tab");
   const parse = page.getByRole("button", { name: "Parse", exact: true });
   await expect(parse).toBeFocused();

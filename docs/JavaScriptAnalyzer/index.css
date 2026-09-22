@@ -8,6 +8,10 @@
   min-width: 0;
 }
 
+#unhex > .controls > form > .help:first-child {
+  margin-top: 0;
+}
+
 #unhex .help:empty {
   margin: 0;
 }
@@ -20,7 +24,7 @@
 
   #unhex > .controls > form {
     display: grid;
-    /* Share rows for labels, help text, inputs, errors, and buttons. */
+    /* Share rows for help text, labels, inputs, errors, and buttons. */
     grid-row: span 5;
     grid-template-rows: subgrid;
   }

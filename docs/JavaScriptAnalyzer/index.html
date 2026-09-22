@@ -27,24 +27,24 @@
           expressions and statements are unsupported.
         </p>
         <p class="help" id="unhex-search-help">Select Parse before searching and again after editing the array.</p>
-        <label for="unhex-input">JavaScript array to parse</label>
+        <label for="unhex-input">JavaScript array</label>
         <textarea id="unhex-input" aria-describedby="unhex-input-help unhex-input-error" spellcheck="false"></textarea>
         <p class="help" id="unhex-input-error"></p>
         <button type="button" class="blue">Parse</button>
         <div class="controls">
           <form id="find-index-form" aria-label="Find index">
-            <label for="find-index-input">Value to find</label>
             <p class="help" id="find-index-help">
               Find string entries containing this text; leave blank to find all strings.
             </p>
+            <label for="find-index-input">Search text</label>
             <input id="find-index-input" aria-describedby="find-index-help unhex-search-help" spellcheck="false" />
             <button type="submit" class="green">Find Index</button>
           </form>
           <form id="find-value-form" aria-label="Find value">
-            <label for="find-value-input">Index to look up</label>
             <p class="help" id="find-value-help">
               Enter a decimal integer index, starting at 0. Negative indices count from the end; -1 is last.
             </p>
+            <label for="find-value-input">Index</label>
             <input
               id="find-value-input"
               aria-describedby="find-value-help unhex-search-help find-value-error"

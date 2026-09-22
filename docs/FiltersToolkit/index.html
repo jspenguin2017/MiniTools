@@ -35,12 +35,12 @@
     <main id="main-content" tabindex="-1">
       <section class="container" id="links-to-domains" aria-labelledby="links-to-domains-heading">
         <h2 id="links-to-domains-heading">Links to Domains</h2>
-        <label for="links-to-domains-input">Links to extract domains from</label>
         <p class="help" id="links-to-domains-help">
           Extract the first HTTP(S) link's domain per line, keeping duplicates. Missing or extra links produce warnings.
           Separate links from surrounding text with whitespace; punctuation attached to a hostname is invalid.
           Internationalized hostnames convert to Punycode.
         </p>
+        <label for="links-to-domains-input">Links</label>
         <textarea
           id="links-to-domains-input"
           aria-describedby="links-to-domains-help domain-output domain-format"
@@ -54,8 +54,8 @@
 
       <section class="container" id="merge-domains" aria-labelledby="merge-domains-heading">
         <h2 id="merge-domains-heading">Merge Domains</h2>
-        <label for="merge-domains-input">Domain arrays to merge</label>
         <p class="help" id="merge-domains-help">Combine lists, removing duplicates with warnings.</p>
+        <label for="merge-domains-input">Domain lists to merge</label>
         <textarea
           id="merge-domains-input"
           aria-describedby="merge-domains-help domain-output domain-format domain-list-format"
@@ -69,11 +69,11 @@
 
       <section class="container" id="unmerge-domains" aria-labelledby="unmerge-domains-heading">
         <h2 id="unmerge-domains-heading">Unmerge Domains</h2>
-        <label for="unmerge-domains-input">Domain arrays to unmerge</label>
         <p class="help" id="unmerge-domains-help">
           Remove domains on subsequent lines from the first nonblank line, one occurrence per match. Keep remaining
           duplicates and warn about unmatched entries.
         </p>
+        <label for="unmerge-domains-input">Domain lists to unmerge</label>
         <textarea
           id="unmerge-domains-input"
           aria-describedby="unmerge-domains-help domain-output domain-format domain-list-format"
@@ -88,7 +88,7 @@
       <section class="container" id="unicode-escape" aria-labelledby="unicode-escape-heading">
         <h2 id="unicode-escape-heading">Unicode Escape</h2>
         <p id="unicode-escape-help">Convert non-ASCII characters to Unicode escape sequences.</p>
-        <label for="unicode-escape-input">Text to Unicode escape</label>
+        <label for="unicode-escape-input">Text</label>
         <textarea id="unicode-escape-input" aria-describedby="unicode-escape-help" spellcheck="false"></textarea>
         <button type="button" class="blue" aria-label="Transform text to Unicode escapes">Transform</button>
         <button type="button" class="green hidden" aria-label="Copy Output from Unicode escape">Copy Output</button>
