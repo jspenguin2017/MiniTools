@@ -31,14 +31,29 @@ for internationalized names. Both preserve spelling and case and compare exact t
 
 ### JavaScript Analyzer
 
-**Unhex** decodes escaped strings in array literals into JSON and also accepts ordinary arrays. Paste the full array,
-including square brackets, and select **Parse**:
+**Unhex** decodes escaped strings in array literals into JSON and also accepts unescaped strings. It is intended for
+arrays of strings; non-string entries may parse but are not fully supported. Paste the full array, including square
+brackets, and select **Parse**:
 
-- **Find Index:** Search string entries for a substring.
+- **Find Index:** Search top-level string entries for a substring; non-string entries are skipped.
 - **Find Value:** Look up a decimal integer index, starting at `0`; negative indices count from the end (`-1` is last).
 
 Select **Parse** again after editing the array. Input is parsed as data; JavaScript expressions and statements are not
 executed.
+
+Non-string values may lose information in the display:
+
+- **Find Value** shows ordinary objects as `[object Object]` and nested arrays as comma-separated text, without
+  preserving their structure. `null`, `undefined`, and empty array slots show no text. JSON is used only when conversion
+  to text fails.
+- The decoded JSON in the array field turns `undefined`, empty slots, and non-finite numbers such as `NaN` and
+  `Infinity` into `null` in arrays, and omits object properties whose value is `undefined`. Searches use the original
+  parsed data until **Parse** is selected again, so lookup results can differ from the displayed JSON. Parsing that JSON
+  again loses the original values.
+
+If a **Find Value** index is invalid or out of range, an error appears below the Index field while the previous result
+and status remain unchanged. Check that error before relying on the result; it is not announced through the status
+region.
 
 ## Run locally
 

@@ -5,8 +5,19 @@
 - Reviewed `docs/JavaScriptAnalyzer/parse-array.js`, `unhex.js`, their page/control contracts in `index.html`, and
   related documentation in `README.md` and `AGENTS.md`.
 - Basis: commit `51cee5b649b6ccd059d58031451231349f02482d`, with a clean worktree before review.
-- Review only; production files and tests were not modified. Third-party code, formatting, and individual test cases
-  were excluded.
+- The original review did not modify production files or tests. Third-party code, formatting, and individual test cases
+  were excluded. Locations and reproduction results below refer to the reviewed commit.
+
+## Documentation disposition
+
+- **A2 — Addressed by documenting limited support.** Unhex is intended for arrays of strings. Non-string entries may
+  parse but are not fully supported. [README.md](README.md#javascript-analyzer) now describes the lossy lookup and JSON
+  displays, and the [analyzer page](docs/JavaScriptAnalyzer/index.html) states the support boundary. The parser and
+  lookup formatting remain unchanged; accepting a value does not promise a lossless display.
+- **A1 — Retained as a documented limitation.** Invalid-index validation also affects arrays containing only strings, so
+  the non-string support boundary does not resolve this finding. The README and page help now explain that an invalid or
+  out-of-range index leaves the previous result and status unchanged. The README also notes that the inline error is not
+  announced through the status region. The recommended behavior change is not implemented, as requested.
 
 ## Findings
 
@@ -58,9 +69,9 @@
 
 ## Unresolved questions
 
-- No additional unresolved candidate defect is asserted. Product policy for displaying non-JSON values remains implicit
-  in the UI; `AGENTS.md` explicitly documents that the JSON textarea can lose `undefined`, holes, and non-finite values
-  while searches retain parsed data. That known representation contract is not reported as a new finding.
+- No additional unresolved candidate defect is asserted. The non-string support boundary and possible information loss
+  are now explicit in the README and UI. `AGENTS.md` also documents that the JSON textarea can lose `undefined`, holes,
+  and non-finite values while searches retain parsed data. A1 remains a known limitation as described above.
 
 ## Material limits
 

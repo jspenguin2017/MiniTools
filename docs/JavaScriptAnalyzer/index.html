@@ -23,8 +23,9 @@
       <section class="container" id="unhex" aria-labelledby="unhex-heading">
         <h2 id="unhex-heading">Unhex</h2>
         <p id="unhex-input-help">
-          Enter an array literal, including square brackets, to decode escaped strings or search its entries. JavaScript
-          expressions and statements are unsupported.
+          Enter an array literal of strings, including square brackets, to decode escaped strings or search its entries.
+          Non-string entries may parse but are not fully supported; displayed values may lose information or structure.
+          JavaScript expressions and statements are unsupported.
         </p>
         <p class="help" id="unhex-search-help">Select Parse before searching and again after editing the array.</p>
         <label for="unhex-input">JavaScript array</label>
@@ -42,7 +43,8 @@
           </form>
           <form id="find-value-form" aria-label="Find value">
             <p class="help" id="find-value-help">
-              Enter a decimal integer index, starting at 0. Negative indices count from the end; -1 is last.
+              Enter a decimal integer index, starting at 0. Negative indices count from the end; -1 is last. If the
+              index is invalid or out of range, check the error below; the previous result and status remain unchanged.
             </p>
             <label for="find-value-input">Index</label>
             <input
