@@ -1,9 +1,11 @@
 import { createTextTransform } from "./text-transform.js";
+import { isValidDomain } from "./validate-domain.js";
 
 // Repeated prefixes may indicate multiple links or appear within a single URL
 const MULTIPLE_LINK_PREFIXES_PATTERN = /https?:.*?https?:/i;
 
-// Take the first link candidate through the next whitespace; URL validates it
+// Take the first link candidate through the next whitespace. Punctuation attached
+// to its hostname is rejected by domain validation rather than guessed away.
 const FIRST_LINK_CANDIDATE_PATTERN = /https?:\/\/\S+/i;
 
 // Keep at least two domain labels, preserving "www.com" and similar domains
@@ -31,6 +33,10 @@ textTransform.transformButton.addEventListener("click", () => {
     }
     try {
       const { hostname } = new URL(firstLinkCandidate[0]);
+      if (!isValidDomain(hostname)) {
+        warn.push('Invalid link "' + line + '"');
+        continue;
+      }
       out.push(hostname.replace(DOMAIN_CLEANUP_PATTERN, ""));
     } catch {
       warn.push('Invalid link "' + line + '"');

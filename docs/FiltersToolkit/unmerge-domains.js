@@ -1,4 +1,5 @@
 import { createTextTransform } from "./text-transform.js";
+import { isValidDomain } from "./validate-domain.js";
 
 const textTransform = createTextTransform(/** @type {HTMLElement} */ (document.getElementById("unmerge-domains")));
 
@@ -18,6 +19,10 @@ textTransform.transformButton.addEventListener("click", () => {
     count++;
     for (let d of line.split(",")) {
       d = d.trim();
+      if (!isValidDomain(d)) {
+        warn.push('Invalid entry "' + d + '"');
+        continue;
+      }
       const occurrences = remaining.get(d) ?? 0;
       if (count === 1) {
         remaining.set(d, occurrences + 1);

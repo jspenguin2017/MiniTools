@@ -42,9 +42,10 @@ browser zoom testing.
   button order. Preserve labels, descriptions, status regions, and keyboard access when changing markup.
 - **Content Security Policy:** Pages use `default-src 'self'`; keep scripts and styles in local files and avoid inline
   handlers. Clipboard access can fail; preserve the manual-copy fallback and copy only the result, excluding warnings.
-- **Domain handling:** URL parsing alone accepts some invalid hostnames. Merge combines email-input validation with
-  `URL.canParse`, preserving case and spelling and deduplicating exact trimmed strings. Unmerge tracks occurrence
-  counts; replacing them with a set would lose duplicate-removal behavior.
+- **Domain handling:** URL parsing alone accepts some invalid hostnames. All three domain tools use
+  [isValidDomain](docs/FiltersToolkit/validate-domain.js) for hostname labels, lengths, and IP validation. Validate URL
+  hostnames before removing `www` prefixes. Merge and unmerge preserve case and spelling and compare exact trimmed
+  strings. Unmerge tracks occurrence counts; replacing them with a set would lose duplicate-removal behavior.
 - **Array parsing:** Keep input as literal data; do not use `eval` or `Function`. Object keys such as `__proto__` must
   remain data properties. Searches use the parsed array, while the textarea displays `JSON.stringify` output, which can
   lose information such as `undefined`, sparse slots, and non-finite numbers.

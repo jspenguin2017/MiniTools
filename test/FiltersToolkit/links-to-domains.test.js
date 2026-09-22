@@ -59,13 +59,30 @@ const cases = [
     input: "https://www.bücher.example/path\nhttps://%65xample.com/path",
     expected: "Output:\nexample.com,xn--bcher-kva.example",
   },
-  ...["https://[2001:db8::1", "https://example.com:invalid/", "https://example.com:65536/", "https://alice@/"].map(
-    (input) => ({
-      name: `warns about an invalid URL (${input}) and continues processing other lines`,
-      input: `https://before.example\n${input}\nhttps://after.example`,
-      expected: `Warnings:\nInvalid link "${input}"\n\nOutput:\nafter.example,before.example`,
-    }),
-  ),
+  ...[
+    "https://[2001:db8::1",
+    "https://example.com:invalid/",
+    "https://example.com:65536/",
+    "https://alice@/",
+    "https://bad..example.com",
+    "https://bad_name.example.com",
+    "https://example.com)",
+    "https://example.com,",
+    "https://example.com.",
+    "https://localhost",
+    "https://-example.com",
+    "https://example-.com",
+    "https://www..example.com",
+    "https://www.bad_name.example.com",
+    "https://www.%5Fexample.com",
+    "https://999.999.999.999",
+    `https://${"a".repeat(64)}.example`,
+    `https://www.${"a".repeat(63)}.${"b".repeat(63)}.${"c".repeat(63)}.${"d".repeat(58)}`,
+  ].map((input) => ({
+    name: `warns about an invalid URL (${input}) and continues processing other lines`,
+    input: `https://before.example\n${input}\nhttps://after.example`,
+    expected: `Warnings:\nInvalid link "${input}"\n\nOutput:\nafter.example,before.example`,
+  })),
   {
     name: "cleans ww and www prefixes with optional digits and retains other subdomains",
     input:
@@ -101,6 +118,12 @@ const cases = [
     input: "https://[invalid]/ HTTPS://valid.example",
     expected:
       'Warnings:\nMultiple HTTP(S) prefixes (only the first link candidate is parsed) "https://[invalid]/ HTTPS://valid.example"\nInvalid link "https://[invalid]/ HTTPS://valid.example"\n\nOutput:\n',
+  },
+  {
+    name: "rejects a malformed first hostname without falling back to the second link",
+    input: "https://bad..example.com https://valid.example",
+    expected:
+      'Warnings:\nMultiple HTTP(S) prefixes (only the first link candidate is parsed) "https://bad..example.com https://valid.example"\nInvalid link "https://bad..example.com https://valid.example"\n\nOutput:\n',
   },
   {
     name: "warns about missing links while retaining valid lines",
