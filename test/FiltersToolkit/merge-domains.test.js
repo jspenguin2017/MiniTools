@@ -174,11 +174,28 @@ describe("merge-domains", () => {
 
   it("recomputes output and warnings when transforming repeatedly", async () => {
     const tool = await loadTransform("merge-domains");
-    const warning = cases.find((example) => example.expected.startsWith("Warnings:"));
-    for (const example of [warning ?? cases[1], cases[0], cases[0], { input: "", expected: "Output:\n" }]) {
-      tool.input.value = example.input;
+    for (const [input, expected, status] of [
+      [
+        "first.example\nfirst.example",
+        'Warnings:\nDuplicate entry "first.example"\n\nOutput:\nfirst.example',
+        "Transformation complete. Warnings: 1. Output is ready below.",
+      ],
+      [
+        "replacement.example\nnext.example",
+        "Output:\nnext.example,replacement.example",
+        "Transformation complete. Warnings: 0. Output is ready below.",
+      ],
+      [
+        "replacement.example\nnext.example",
+        "Output:\nnext.example,replacement.example",
+        "Transformation complete. Warnings: 0. Output is ready below.",
+      ],
+      ["", "Output:\n", "Transformation complete. Warnings: 0. Output is empty."],
+    ]) {
+      tool.input.value = input;
       tool.transform.click();
-      assert.equal(tool.output.textContent, example.expected);
+      assert.equal(tool.output.textContent, expected);
+      assert.equal(tool.status.textContent, status);
       assert.equal(tool.output.hidden, false);
       assert.equal(tool.copy.classList.contains("hidden"), false);
     }

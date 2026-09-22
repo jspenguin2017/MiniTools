@@ -78,7 +78,12 @@ describe("unicode-escape", () => {
     vi.stubGlobal("navigator", { clipboard: { writeText } });
     /** @type {string[][]} */
     const expectedCalls = [];
-    for (const example of [cases[0], cases[cases.length - 1], { input: "", expected: "Output:\n" }]) {
+    for (const example of [
+      cases[0],
+      cases[cases.length - 1],
+      { input: "Output:\né\nWarnings:", expected: "Output:\nOutput:\n\\u00E9\nWarnings:" },
+      { input: "", expected: "Output:\n" },
+    ]) {
       tool.input.value = example.input;
       tool.transform.click();
       tool.input.value = "new, untransformed input";
@@ -86,7 +91,7 @@ describe("unicode-escape", () => {
       tool.input.setSelectionRange(2, 7, "backward");
       tool.copy.click();
       await vi.waitFor(() => assert.equal(tool.status.textContent, "Output copied to clipboard."));
-      expectedCalls.push([example.expected.split("Output:\n")[1]]);
+      expectedCalls.push([example.expected.slice("Output:\n".length)]);
       assert.deepEqual(writeText.mock.calls, expectedCalls);
       assert.deepEqual(
         inputsDuringCopy,
@@ -103,11 +108,16 @@ describe("unicode-escape", () => {
 
   it("recomputes output when transforming repeatedly", async () => {
     const tool = await loadTransform("unicode-escape");
-    const warning = cases.find((example) => example.expected.startsWith("Warnings:"));
-    for (const example of [warning ?? cases[1], cases[0], cases[0], { input: "", expected: "Output:\n" }]) {
+    for (const example of [cases[1], cases[0], cases[0], { input: "", expected: "Output:\n" }]) {
       tool.input.value = example.input;
       tool.transform.click();
       assert.equal(tool.output.textContent, example.expected);
+      assert.equal(
+        tool.status.textContent,
+        example.input === ""
+          ? "Transformation complete. Warnings: 0. Output is empty."
+          : "Transformation complete. Warnings: 0. Output is ready below.",
+      );
       assert.equal(tool.output.hidden, false);
       assert.equal(tool.copy.classList.contains("hidden"), false);
     }

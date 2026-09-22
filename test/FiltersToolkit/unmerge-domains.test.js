@@ -138,7 +138,15 @@ describe("unmerge-domains", () => {
     vi.stubGlobal("navigator", { clipboard: { writeText } });
     /** @type {string[][]} */
     const expectedCalls = [];
-    for (const example of [cases[0], cases[cases.length - 1], { input: "", expected: "Output:\n" }]) {
+    for (const example of [
+      cases[0],
+      cases[cases.length - 1],
+      {
+        input: "keep.example,remove.example\nremove.example,missing.example",
+        expected: 'Warnings:\nNo entry "missing.example"\n\nOutput:\nkeep.example',
+      },
+      { input: "", expected: "Output:\n" },
+    ]) {
       tool.input.value = example.input;
       tool.transform.click();
       tool.input.value = "new, untransformed input";
@@ -163,11 +171,28 @@ describe("unmerge-domains", () => {
 
   it("recomputes output and warnings when transforming repeatedly", async () => {
     const tool = await loadTransform("unmerge-domains");
-    const warning = cases.find((example) => example.expected.startsWith("Warnings:"));
-    for (const example of [warning ?? cases[1], cases[0], cases[0], { input: "", expected: "Output:\n" }]) {
-      tool.input.value = example.input;
+    for (const [input, expected, status] of [
+      [
+        "first.example\nmissing.example",
+        'Warnings:\nNo entry "missing.example"\n\nOutput:\nfirst.example',
+        "Transformation complete. Warnings: 1. Output is ready below.",
+      ],
+      [
+        "replacement.example,remove.example\nremove.example",
+        "Output:\nreplacement.example",
+        "Transformation complete. Warnings: 0. Output is ready below.",
+      ],
+      [
+        "replacement.example,remove.example\nremove.example",
+        "Output:\nreplacement.example",
+        "Transformation complete. Warnings: 0. Output is ready below.",
+      ],
+      ["", "Output:\n", "Transformation complete. Warnings: 0. Output is empty."],
+    ]) {
+      tool.input.value = input;
       tool.transform.click();
-      assert.equal(tool.output.textContent, example.expected);
+      assert.equal(tool.output.textContent, expected);
+      assert.equal(tool.status.textContent, status);
       assert.equal(tool.output.hidden, false);
       assert.equal(tool.copy.classList.contains("hidden"), false);
     }

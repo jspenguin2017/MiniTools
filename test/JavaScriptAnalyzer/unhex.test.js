@@ -281,6 +281,8 @@ describe("unhex", () => {
       assertMessage(tool, tool.findIndex("old"), NOTHING_PARSED_MESSAGE);
       assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
       assertMessage(tool, tool.parse('["recovered"]'), PARSED_MESSAGE);
+      assert.equal(tool.input.hasAttribute("aria-invalid"), false);
+      assert.equal(tool.window.document.getElementById("unhex-input-error").textContent, "");
       assert.equal(tool.findValue("0"), "recovered");
     });
 
@@ -288,8 +290,15 @@ describe("unhex", () => {
       const tool = await analyzer();
       tool.parse('["original"]');
       tool.input.value = '["edited"]';
+      tool.input.dispatchEvent(new Event("input"));
       assert.equal(tool.findIndex("original"), "0:original");
       assert.equal(tool.findValue("0"), "original");
+      assert.equal(tool.input.value, '["edited"]');
+
+      assertMessage(tool, tool.parse(tool.input.value), PARSED_MESSAGE);
+      assertMessage(tool, tool.findIndex("original"), "No matching string entries found.");
+      assert.equal(tool.findIndex("edited"), "0:edited");
+      assert.equal(tool.findValue("0"), "edited");
     });
 
     it("keeps sparse nonempty arrays searchable and replaces them with a truly empty array", async () => {
@@ -487,8 +496,12 @@ describe("unhex", () => {
       tool.parse('["value", "next"]');
       assertValueError(tool, "bad", "Enter an integer, for example 0 or -1.");
       assert.equal(tool.findValue("0"), "value");
+      assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
+      assert.equal(tool.window.document.getElementById("find-value-error").textContent, "");
       assertValueError(tool, "2", "Use an index from -2 to 1.");
       assert.equal(tool.findValue("-1"), "next");
+      assert.equal(tool.valueInput.hasAttribute("aria-invalid"), false);
+      assert.equal(tool.window.document.getElementById("find-value-error").textContent, "");
     });
   });
 
