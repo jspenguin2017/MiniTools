@@ -128,6 +128,8 @@ test("analyzer supports keyboard submission, readable results and validation rec
   const source = page.getByRole("textbox", { name: "JavaScript array" });
   const value = page.getByRole("textbox", { name: "Search text" });
   const index = page.getByRole("textbox", { name: "Index", exact: true });
+  const indexError = page.getByRole("alert");
+  const findValue = page.getByRole("button", { name: "Find Value", exact: true });
   const status = page.getByRole("status");
   const output = page.getByRole("region", { name: "JavaScript Analyzer results" });
   await expect(source).toBeFocused();
@@ -152,12 +154,29 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await expect(index).toBeFocused();
   await expect(index).toHaveAttribute("aria-invalid", "true");
   await expect(index).toHaveAccessibleDescription(/Enter an integer/);
+  await expect(indexError).toHaveText("Enter an integer, for example 0 or -1.");
   await expect(status).toHaveText("Matching string entries: 2. Results are ready below.");
   await expect(output).toHaveText("0:first\n1:second");
   await expect(output).toBeVisible();
+  for (const invalidIndex of ["bad", "3", "-4"]) {
+    await index.fill(invalidIndex);
+    await expect(indexError).toBeEmpty();
+    await page.keyboard.press("Tab");
+    await expect(findValue).toBeFocused();
+    await page.keyboard.press("Space");
+    await expect(findValue).toBeFocused();
+    await expect(index).toHaveAttribute("aria-invalid", "true");
+    const message = invalidIndex === "bad" ? "Enter an integer, for example 0 or -1." : "Use an index from -3 to 2.";
+    await expect(indexError).toHaveText(message);
+    await expect(index).toHaveAccessibleDescription(new RegExp(message.replaceAll(".", "\\.")));
+    await expect(status).toHaveText("Matching string entries: 2. Results are ready below.");
+    await expect(output).toHaveText("0:first\n1:second");
+    await expect(output).toBeVisible();
+  }
   await audit(page);
   await index.fill("1");
   await expect(index).not.toHaveAttribute("aria-invalid");
+  await expect(indexError).toBeEmpty();
   await page.keyboard.press("Enter");
   await expect(output).toHaveText("second");
   await page.keyboard.press("Tab");
@@ -180,7 +199,22 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await source.fill("[]");
   await expect(source).not.toHaveAttribute("aria-invalid");
   await page.getByRole("button", { name: "Parse", exact: true }).click();
+  await expect(source).toHaveAttribute("aria-invalid", "true");
+  await expect(source).toHaveAccessibleDescription(/The array is empty/);
+  await expect(status).toHaveText("The array is empty. Add an entry and select Parse.");
+  for (const name of ["Find Index", "Find Value"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(status).toHaveText("Parse a nonempty array before searching.");
+    await expect(output).toBeHidden();
+  }
+  await audit(page);
+  await source.fill('["recovered"]');
+  await expect(source).not.toHaveAttribute("aria-invalid");
+  await page.getByRole("button", { name: "Parse", exact: true }).click();
   await expect(status).toContainText("Input successfully parsed.");
+  await index.fill("0");
+  await page.keyboard.press("Enter");
+  await expect(output).toHaveText("recovered");
   await expectReflow(page);
 });
 

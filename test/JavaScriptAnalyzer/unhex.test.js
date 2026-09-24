@@ -5,7 +5,8 @@ import { loadPage } from "../helpers/load-page.js";
 const PARSED_MESSAGE = "Input successfully parsed. The array field now contains decoded JSON.";
 const PARSE_FAILURE_MESSAGE =
   "Could not parse input. Enter a complete array literal, including square brackets. Expressions are not supported.";
-const NOTHING_PARSED_MESSAGE = "Nothing parsed. Parse a nonempty array before searching.";
+const EMPTY_ARRAY_MESSAGE = "The array is empty. Add an entry and select Parse.";
+const NOTHING_PARSED_MESSAGE = "Parse a nonempty array before searching.";
 
 /**
  * Load the analyzer and expose its controls and interactions.
@@ -171,8 +172,9 @@ describe("unhex", () => {
     for (const [source, message] of [
       ['["replacement"]', PARSED_MESSAGE],
       ["[", PARSE_FAILURE_MESSAGE],
+      ["[]", EMPTY_ARRAY_MESSAGE],
     ]) {
-      it(`clears old results and index errors after a ${source === "[" ? "failed" : "successful"} parse`, async () => {
+      it(`clears old results and index errors when parsing ${source}`, async () => {
         const tool = await analyzer();
         vi.spyOn(tool.window.console, "log").mockImplementation(() => {});
         tool.parse('["old"]');
@@ -239,13 +241,25 @@ describe("unhex", () => {
       }
     });
 
-    it("accepts an empty array and reports nothing parsed when searching it", async () => {
-      const tool = await analyzer();
-      assertMessage(tool, tool.parse("[]"), PARSED_MESSAGE);
-      assert.equal(tool.input.value, "[]");
-      assertMessage(tool, tool.findIndex("anything"), NOTHING_PARSED_MESSAGE);
-      assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
-    });
+    for (const source of ["[]", " /* empty */ [ ] ; "]) {
+      it(`explains the nonempty requirement when parsing ${JSON.stringify(source)} and recovers`, async () => {
+        const tool = await analyzer();
+        assertMessage(tool, tool.parse(source), EMPTY_ARRAY_MESSAGE);
+        assert.equal(tool.input.value, source);
+        assert.equal(tool.input.getAttribute("aria-invalid"), "true");
+        const error = tool.window.document.getElementById("unhex-input-error");
+        assert.equal(error.textContent, EMPTY_ARRAY_MESSAGE);
+        assert.equal(tool.input.getAttribute("aria-describedby").split(/\s+/).includes(error.id), true);
+        assertMessage(tool, tool.findIndex("anything"), NOTHING_PARSED_MESSAGE);
+        assertMessage(tool, tool.findValue("0"), NOTHING_PARSED_MESSAGE);
+
+        assertMessage(tool, tool.parse('["entry"]'), PARSED_MESSAGE);
+        assert.equal(tool.input.hasAttribute("aria-invalid"), false);
+        assert.equal(error.textContent, "");
+        assert.equal(tool.findIndex("entry"), "0:entry");
+        assert.equal(tool.findValue("0"), "entry");
+      });
+    }
 
     for (const source of ["", "['unterminated]"]) {
       it(`reports ${source ? "malformed array syntax" : "empty input"} without overwriting the input`, async () => {
@@ -310,7 +324,7 @@ describe("unhex", () => {
       assert.equal(tool.findValue("-2"), "");
       assertValueError(tool, "2", "Use an index from -2 to 1.");
       assertValueError(tool, "-3", "Use an index from -2 to 1.");
-      assertMessage(tool, tool.parse("[]"), PARSED_MESSAGE);
+      assertMessage(tool, tool.parse("[]"), EMPTY_ARRAY_MESSAGE);
       assertMessage(tool, tool.findIndex(""), NOTHING_PARSED_MESSAGE);
       assertMessage(tool, tool.findValue("-1"), NOTHING_PARSED_MESSAGE);
     });

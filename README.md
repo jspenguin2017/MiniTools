@@ -13,7 +13,7 @@ Paste text, select **Transform**, then use **Copy Output** to copy the result wi
 - **Links to domains:** Extract the first HTTP(S) link's domain per line into a sorted, comma-separated list. Keep
   duplicates; warn about missing, invalid, or extra links.
 - **Merge domains:** Combine comma-separated lists (one per line), sort, and remove invalid entries and exact duplicates
-  after trimming, with warnings. Preserve spelling and case.
+  after trimming, with warnings. Preserve spelling and case. A single list is still sorted, with a warning.
 - **Unmerge domains:** Remove domains on subsequent lines from the first nonblank comma-separated list, one occurrence
   per match. Sort the remainder, preserving duplicates; skip invalid entries and warn about invalid or unmatched
   entries.
@@ -32,8 +32,8 @@ for internationalized names. Both preserve spelling and case and compare exact t
 ### JavaScript Analyzer
 
 **Unhex** decodes escaped strings in array literals into JSON and also accepts unescaped strings. It is intended for
-arrays of strings; non-string entries may parse but are not fully supported. Paste the full array, including square
-brackets, and select **Parse**:
+nonempty arrays of strings; non-string entries may parse but are not fully supported. Paste the full array, including
+square brackets, and select **Parse**:
 
 - **Find Index:** Search top-level string entries for a substring; non-string entries are skipped.
 - **Find Value:** Look up a decimal integer index, starting at `0`; negative indices count from the end (`-1` is last).
@@ -51,9 +51,8 @@ Non-string values may lose information in the display:
   parsed data until **Parse** is selected again, so lookup results can differ from the displayed JSON. Parsing that JSON
   again loses the original values.
 
-If a **Find Value** index is invalid or out of range, an error appears below the Index field while the previous result
-and status remain unchanged. Check that error before relying on the result; it is not announced through the status
-region.
+If a **Find Value** index is invalid or out of range, an error appears below the Index field. The previous result stays
+unchanged until you correct the index and search again.
 
 ## Run locally
 

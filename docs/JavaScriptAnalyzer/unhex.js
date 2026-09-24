@@ -39,6 +39,12 @@ const handleParse = () => {
   clearError($findValueInput, $valueError);
   try {
     unHexData = parseArray($input.value);
+    if (unHexData.length === 0) {
+      $input.setAttribute("aria-invalid", "true");
+      $inputError.textContent = "The array is empty. Add an entry and select Parse.";
+      showMessage($inputError.textContent);
+      return;
+    }
     $input.value = JSON.stringify(unHexData);
     showMessage("Input successfully parsed. The array field now contains decoded JSON.");
   } catch (err) {
@@ -55,7 +61,7 @@ $parseButton.addEventListener("click", handleParse);
 /** @returns {void} Display indices and values of string entries containing the query. */
 const handleFindIndex = () => {
   if (unHexData.length === 0) {
-    showMessage("Nothing parsed. Parse a nonempty array before searching.");
+    showMessage("Parse a nonempty array before searching.");
     return;
   }
   let output = "";
@@ -85,7 +91,7 @@ document.getElementById("find-index-form").addEventListener("submit", (event) =>
 const handleFindValue = () => {
   clearError($findValueInput, $valueError);
   if (unHexData.length === 0) {
-    showMessage("Nothing parsed. Parse a nonempty array before searching.");
+    showMessage("Parse a nonempty array before searching.");
     return;
   }
   const index = $findValueInput.value.trim();
