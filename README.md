@@ -32,10 +32,10 @@ for internationalized names. Both preserve spelling and case and compare exact t
 ### JavaScript Analyzer
 
 **Unhex** decodes escaped strings in array literals into JSON and also accepts unescaped strings. It is intended for
-nonempty arrays of strings; non-string entries may parse but are not fully supported. Paste the full array, including
+nonempty arrays of strings; non-string values may parse but are not fully supported. Paste the full array, including
 square brackets, and select **Parse**:
 
-- **Find Index:** Search top-level string entries for a substring; non-string entries are skipped.
+- **Find Index:** Search top-level string values for a substring; non-string values are skipped.
 - **Find Value:** Look up a decimal integer index, starting at `0`; negative indices count from the end (`-1` is last).
 
 Select **Parse** again after editing the array. Input is parsed as data; JavaScript expressions and statements are not
