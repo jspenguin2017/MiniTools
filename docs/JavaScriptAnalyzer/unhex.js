@@ -41,7 +41,7 @@ const handleParse = () => {
     unHexData = parseArray($input.value);
     if (unHexData.length === 0) {
       $input.setAttribute("aria-invalid", "true");
-      $inputError.textContent = "The array is empty. Add an entry and select Parse.";
+      $inputError.textContent = "The array is empty. Add a value and select Parse.";
       showMessage($inputError.textContent);
       return;
     }
@@ -58,7 +58,7 @@ const handleParse = () => {
 
 $parseButton.addEventListener("click", handleParse);
 
-/** @returns {void} Display indices and values of string entries containing the query. */
+/** @returns {void} Display indices and matching string values. */
 const handleFindIndex = () => {
   if (unHexData.length === 0) {
     showMessage("Parse a nonempty array before searching.");
@@ -67,19 +67,19 @@ const handleFindIndex = () => {
   let output = "";
   let count = 0;
   for (let i = 0; i < unHexData.length; i++) {
-    const entry = unHexData[i];
-    if (typeof entry === "string" && entry.includes($findIndexInput.value)) {
+    const value = unHexData[i];
+    if (typeof value === "string" && value.includes($findIndexInput.value)) {
       count++;
       if (output) {
         output += "\n";
       }
-      output += `${i}:${entry}`;
+      output += `${i}:${value}`;
     }
   }
   $output.textContent = output;
   $output.hidden = output.length === 0;
   $status.textContent =
-    count === 0 ? "No matching string entries found." : `Matching string entries: ${count}. Results are ready below.`;
+    count === 0 ? "No matching string values found." : `Matching string values: ${count}. Results are ready below.`;
 };
 
 document.getElementById("find-index-form").addEventListener("submit", (event) => {
@@ -87,7 +87,7 @@ document.getElementById("find-index-form").addEventListener("submit", (event) =>
   handleFindIndex();
 });
 
-/** @returns {void} Display the entry at the requested index, allowing negative indices. */
+/** @returns {void} Display the value at the requested index, allowing negative indices. */
 const handleFindValue = () => {
   clearError($findValueInput, $valueError);
   if (unHexData.length === 0) {

@@ -5,7 +5,7 @@ import { loadTransform } from "../helpers/transform-controls.js";
 /** @type {{ name: string, input: string, expected: string }[]} */
 const cases = [
   {
-    name: "subtracts several arrays, trims entries, ignores blank lines, and sorts the remainder",
+    name: "subtracts several lists, trims entries, ignores blank lines, and sorts the remainder",
     input: "\n z.example, b.example, c.example, a.example, d.example \n\t\n b.example \r\n c.example \n",
     expected: "Output:\na.example,d.example,z.example",
   },
@@ -32,12 +32,12 @@ const cases = [
     expected: "Output:\n",
   },
   {
-    name: "warns for a single nonblank array and returns its sorted entries",
+    name: "warns for a single nonblank list and returns its sorted entries",
     input: "\n b.example, a.example \n \t\n",
-    expected: "Warnings:\nOnly one array found!\n\nOutput:\na.example,b.example",
+    expected: "Warnings:\nOnly one list found!\n\nOutput:\na.example,b.example",
   },
   {
-    name: "rejects empty and dotless entries in the initial and subtraction arrays",
+    name: "rejects empty and dotless entries in the initial and subtraction lists",
     input: "b.example,,local,a.example\n,local",
     expected:
       'Warnings:\nInvalid entry ""\nInvalid entry "local"\nInvalid entry ""\nInvalid entry "local"\n\nOutput:\na.example,b.example',
@@ -58,9 +58,9 @@ const cases = [
     expected: 'Warnings:\nNo entry "constructor.example"\n\nOutput:\nhasOwnProperty.example,toString.example',
   },
   {
-    name: "rejects every entry in a single invalid array",
+    name: "rejects every entry in a single invalid list",
     input: "bad..example.com,",
-    expected: 'Warnings:\nInvalid entry "bad..example.com"\nInvalid entry ""\nOnly one array found!\n\nOutput:\n',
+    expected: 'Warnings:\nInvalid entry "bad..example.com"\nInvalid entry ""\nOnly one list found!\n\nOutput:\n',
   },
   {
     name: "keeps the first nonblank line as the base even when all its entries are invalid",

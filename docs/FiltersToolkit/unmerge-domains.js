@@ -36,7 +36,7 @@ textTransform.transformButton.addEventListener("click", () => {
     }
   }
   if (count === 1) {
-    warn.push("Only one array found!");
+    warn.push("Only one list found!");
   }
   for (const [d, occurrences] of remaining) {
     for (let i = 0; i < occurrences; i++) out.push(d);

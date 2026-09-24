@@ -32,7 +32,7 @@ textTransform.transformButton.addEventListener("click", () => {
     }
   }
   if (count === 1) {
-    warn.push("Only one array found!");
+    warn.push("Only one list found!");
   }
   textTransform.setOutput(out.sort().join(","), warn);
 });

@@ -5,7 +5,7 @@ import { loadTransform } from "../helpers/transform-controls.js";
 /** @type {{ name: string, input: string, expected: string }[]} */
 const cases = [
   {
-    name: "merges and sorts several arrays while trimming entries and ignoring blank lines",
+    name: "merges and sorts several lists while trimming entries and ignoring blank lines",
     input: "\n z.example, a.example \n  \t\n c.example , b.example\r\n d.example \n",
     expected: "Output:\na.example,b.example,c.example,d.example,z.example",
   },
@@ -72,7 +72,7 @@ const cases = [
     expected: 'Warnings:\nDuplicate entry "[::1]"\n\nOutput:\n[2001:DB8::1],[2001:db8::1],[::1],example.com',
   },
   {
-    name: "removes duplicates within and between arrays and warns for each duplicate",
+    name: "removes duplicates within and between lists and warns for each duplicate",
     input: "b.example,b.example,a.example\na.example,c.example,b.example",
     expected:
       'Warnings:\nDuplicate entry "b.example"\nDuplicate entry "a.example"\nDuplicate entry "b.example"\n\nOutput:\na.example,b.example,c.example',
@@ -84,14 +84,14 @@ const cases = [
       'Warnings:\nInvalid entry ""\nInvalid entry "localhost"\nInvalid entry ""\nInvalid entry "invalid"\nInvalid entry ""\n\nOutput:\na.example,b.example',
   },
   {
-    name: "warns for a single nonblank array",
+    name: "warns for a single nonblank list",
     input: "\n b.example, a.example \n \t\n",
-    expected: "Warnings:\nOnly one array found!\n\nOutput:\na.example,b.example",
+    expected: "Warnings:\nOnly one list found!\n\nOutput:\na.example,b.example",
   },
   {
-    name: "handles a single array with no valid entries",
+    name: "handles a single list with no valid entries",
     input: "invalid,",
-    expected: 'Warnings:\nInvalid entry "invalid"\nInvalid entry ""\nOnly one array found!\n\nOutput:\n',
+    expected: 'Warnings:\nInvalid entry "invalid"\nInvalid entry ""\nOnly one list found!\n\nOutput:\n',
   },
   {
     name: "detects duplicates after trimming and distinguishes exact entries",
@@ -100,7 +100,7 @@ const cases = [
       'Warnings:\nDuplicate entry "example.com"\nDuplicate entry "Example.com"\n\nOutput:\nExample.com,a.example,example.com,sub.a.example',
   },
   {
-    name: "counts invalid nonblank lines as arrays and warns for every invalid occurrence",
+    name: "counts invalid nonblank lines as lists and warns for every invalid occurrence",
     input: "invalid,invalid\n,",
     expected:
       'Warnings:\nInvalid entry "invalid"\nInvalid entry "invalid"\nInvalid entry ""\nInvalid entry ""\n\nOutput:\n',

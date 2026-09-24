@@ -142,7 +142,7 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await expect(value).toBeFocused();
   await page.keyboard.insertText("s");
   await page.keyboard.press("Enter");
-  await expect(status).toHaveText("Matching string entries: 2. Results are ready below.");
+  await expect(status).toHaveText("Matching string values: 2. Results are ready below.");
   await expect(value).toBeFocused();
   await page.keyboard.press("Tab");
   await page.keyboard.press("Space");
@@ -155,7 +155,7 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await expect(index).toHaveAttribute("aria-invalid", "true");
   await expect(index).toHaveAccessibleDescription(/Enter an integer/);
   await expect(indexError).toHaveText("Enter an integer, for example 0 or -1.");
-  await expect(status).toHaveText("Matching string entries: 2. Results are ready below.");
+  await expect(status).toHaveText("Matching string values: 2. Results are ready below.");
   await expect(output).toHaveText("0:first\n1:second");
   await expect(output).toBeVisible();
   for (const invalidIndex of ["bad", "3", "-4"]) {
@@ -169,7 +169,7 @@ test("analyzer supports keyboard submission, readable results and validation rec
     const message = invalidIndex === "bad" ? "Enter an integer, for example 0 or -1." : "Use an index from -3 to 2.";
     await expect(indexError).toHaveText(message);
     await expect(index).toHaveAccessibleDescription(new RegExp(message.replaceAll(".", "\\.")));
-    await expect(status).toHaveText("Matching string entries: 2. Results are ready below.");
+    await expect(status).toHaveText("Matching string values: 2. Results are ready below.");
     await expect(output).toHaveText("0:first\n1:second");
     await expect(output).toBeVisible();
   }
@@ -189,7 +189,7 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await expect(status).toContainText("The value has no text representation.");
   await value.fill("missing");
   await page.keyboard.press("Enter");
-  await expect(status).toHaveText("No matching string entries found.");
+  await expect(status).toHaveText("No matching string values found.");
   await source.fill("[");
   await page.getByRole("button", { name: "Parse", exact: true }).click();
   await expect(source).toHaveAttribute("aria-invalid", "true");
@@ -201,7 +201,7 @@ test("analyzer supports keyboard submission, readable results and validation rec
   await page.getByRole("button", { name: "Parse", exact: true }).click();
   await expect(source).toHaveAttribute("aria-invalid", "true");
   await expect(source).toHaveAccessibleDescription(/The array is empty/);
-  await expect(status).toHaveText("The array is empty. Add an entry and select Parse.");
+  await expect(status).toHaveText("The array is empty. Add a value and select Parse.");
   for (const name of ["Find Index", "Find Value"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(status).toHaveText("Parse a nonempty array before searching.");

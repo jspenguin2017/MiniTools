@@ -5,7 +5,7 @@ import { loadPage } from "../helpers/load-page.js";
 const PARSED_MESSAGE = "Input successfully parsed. The array field now contains decoded JSON.";
 const PARSE_FAILURE_MESSAGE =
   "Could not parse input. Enter a complete array literal, including square brackets. Expressions are not supported.";
-const EMPTY_ARRAY_MESSAGE = "The array is empty. Add an entry and select Parse.";
+const EMPTY_ARRAY_MESSAGE = "The array is empty. Add a value and select Parse.";
 const NOTHING_PARSED_MESSAGE = "Parse a nonempty array before searching.";
 
 /**
@@ -35,8 +35,8 @@ async function analyzer() {
       return output.textContent;
     },
     /**
-     * @param {string} value Substring to search for in string entries.
-     * @returns {string} Matching entries, or empty text when no results are displayed.
+     * @param {string} value Substring to search for in string values.
+     * @returns {string} Matching values, or empty text when no results are displayed.
      */
     findIndex(value) {
       indexInput.value = value;
@@ -45,7 +45,7 @@ async function analyzer() {
     },
     /**
      * @param {string} index Index text, including malformed input used to test validation.
-     * @returns {string} Entry text, or empty text when no result is displayed.
+     * @returns {string} Value text, or empty text when no result is displayed.
      */
     findValue(index) {
       valueInput.value = index;
@@ -94,12 +94,12 @@ describe("unhex", () => {
     assert.equal(tool.window.document.activeElement, tool.input);
     tool.indexInput.focus();
     tool.findIndex("s");
-    assert.equal(tool.status.textContent, "Matching string entries: 2. Results are ready below.");
+    assert.equal(tool.status.textContent, "Matching string values: 2. Results are ready below.");
     assert.equal(tool.output.textContent, "0:first\n1:second");
     assert.equal(tool.output.hidden, false);
     assert.equal(tool.window.document.activeElement, tool.indexInput);
     tool.findIndex("missing");
-    assert.equal(tool.status.textContent, "No matching string entries found.");
+    assert.equal(tool.status.textContent, "No matching string values found.");
     assert.equal(tool.output.textContent, "");
     assert.equal(tool.output.hidden, true);
     assert.equal(tool.window.document.activeElement, tool.indexInput);
@@ -122,7 +122,7 @@ describe("unhex", () => {
     tool.indexInput.value = "s";
     tool.valueInput.value = "1";
     for (const [id, expected, status] of [
-      ["find-index-form", "0:first\n1:second", "Matching string entries: 2. Results are ready below."],
+      ["find-index-form", "0:first\n1:second", "Matching string values: 2. Results are ready below."],
       ["find-value-form", "second", "Value found at index 1. The result is ready below."],
     ]) {
       const form = tool.window.document.getElementById(id);
@@ -200,7 +200,7 @@ describe("unhex", () => {
       assert.equal(tool.findValue("0"), "log");
     });
 
-    it("accepts ordinary arrays with strings and non-string entries", async () => {
+    it("accepts ordinary arrays with strings and non-string values", async () => {
       const tool = await analyzer();
       assertMessage(tool, tool.parse('["text", 42, true, null, {"a": 1}, ["nested"]]'), PARSED_MESSAGE);
       assert.equal(tool.input.value, '["text",42,true,null,{"a":1},["nested"]]');
@@ -310,7 +310,7 @@ describe("unhex", () => {
       assert.equal(tool.input.value, '["edited"]');
 
       assertMessage(tool, tool.parse(tool.input.value), PARSED_MESSAGE);
-      assertMessage(tool, tool.findIndex("original"), "No matching string entries found.");
+      assertMessage(tool, tool.findIndex("original"), "No matching string values found.");
       assert.equal(tool.findIndex("edited"), "0:edited");
       assert.equal(tool.findValue("0"), "edited");
     });
@@ -354,7 +354,7 @@ describe("unhex", () => {
       assertMessage(tool, tool.findIndex("anything"), NOTHING_PARSED_MESSAGE);
     });
 
-    it("finds substrings in every string entry and skips non-string entries", async () => {
+    it("finds substrings in every string value and skips non-string values", async () => {
       const tool = await analyzer();
       tool.parse('[42, "test123", null, true, {"text":"test"}, ["test"], "test321", "other", "test123"]');
       assert.equal(tool.findIndex("test"), "1:test123\n6:test321\n8:test123");
@@ -377,7 +377,7 @@ describe("unhex", () => {
       assert.equal(tool.findIndex("missing"), "");
     });
 
-    it("returns no matches for an array containing only non-string entries", async () => {
+    it("returns no matches for an array containing only non-string values", async () => {
       const tool = await analyzer();
       tool.parse('[42, null, false, {}, ["nested"]]');
       assert.equal(tool.findIndex(""), "");
